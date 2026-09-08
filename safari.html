@@ -590,7 +590,30 @@ function fullRank(){
     .sort((a, b) => fixed[b] - fixed[a] || N.get(b).cites - N.get(a).cites);
 }
 let RANK = fullRank();
-let RECS = new Set(RANK.slice(0, TOP_N));
+
+/* 탐험 구역(WORLD): 게임 월드는 전체 그래프의 한 조각이다.
+   확장 코퍼스는 수백~천 단위라 전부 깔면 캐릭터가 한 걸음마다 논문에 부딪힌다.
+   시드 + 추천 상위 60 + 시드→추천 근거 경로 위 노드 + 시드 이웃(차수 순)으로 최대 WORLD_CAP 개만 월드에 놓는다.
+   랭킹(PPR)은 여전히 전체 그래프에서 계산한다. 월드는 "보여 주는 조각"일 뿐이다. */
+const WORLD_CAP = 140;
+function pickWorld(){
+  if (ALL.length <= WORLD_CAP) return ALL.slice();
+  const keep = new Set();
+  for (const id of RX.keys()) if (N.has(id)) keep.add(id);
+  for (const id of RANK.slice(0, 60)) keep.add(id);
+  for (const id of RANK.slice(0, TOP_N * 2)) { const path = whyPath(id); if (path) for (const x of path) keep.add(x); }
+  const cand = new Map();
+  for (const id of [...keep]) for (const m of (ADJ.get(id) || [])) if (!keep.has(m)) cand.set(m, (cand.get(m) || 0) + 1);
+  const rest = [...cand.entries()].sort((a, b) => b[1] - a[1] || (N.get(b[0]).cites - N.get(a[0]).cites)).map(e => e[0]);
+  for (const id of rest) { if (keep.size >= WORLD_CAP) break; keep.add(id); }
+  return ALL.filter(n => keep.has(n.id));
+}
+const WORLD = pickWorld();
+const WORLD_IDS = new Set(WORLD.map(n => n.id));
+const WEDGES = EDGES.filter(e => WORLD_IDS.has(e.a) && WORLD_IDS.has(e.b));
+/* 비콘(추천 상위)은 월드 안에 있는 것만. 판정 때 보여 주는 "그래프 순위"는 전체 RANK 기준이다 */
+const worldRecs = () => new Set(RANK.filter(id => WORLD_IDS.has(id)).slice(0, TOP_N));
+let RECS = worldRecs();
 
 function whyPath(target){
   const starts = [...RX].filter(([, o]) => (WGT[o.r] || 0) > 0).map(([id]) => id);
@@ -635,23 +658,23 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">"
    ───────────────────────────────────────────────────────── */
 const BIG_WORLD = 350;   // 이보다 크면 O(n²) 포스 배치를 건너뛰고 사전 계산 좌표(assets/corpus.js)를 펼쳐 쓴다
 function buildWorld(){
-  if (ALL.length > BIG_WORLD) {
-    const span = 260 * Math.sqrt(ALL.length);
-    for (const n of ALL) { const p = CORPUS_POS.get(n.id) || [Math.random(), Math.random()]; n.x = (p[0] - 0.5) * span; n.y = (p[1] - 0.5) * span; n.vx = 0; n.vy = 0; }
+  if (WORLD.length > BIG_WORLD) {
+    const span = 260 * Math.sqrt(WORLD.length);
+    for (const n of WORLD) { const p = CORPUS_POS.get(n.id) || [Math.random(), Math.random()]; n.x = (p[0] - 0.5) * span; n.y = (p[1] - 0.5) * span; n.vx = 0; n.vy = 0; }
     return;
   }
-  for (const n of ALL) {
+  for (const n of WORLD) {
     const ang = Math.random() * 6.2832, rad = 220 + Math.random() * 560;
     n.x = Math.cos(ang) * rad; n.y = Math.sin(ang) * rad; n.vx = 0; n.vy = 0;
   }
   const K = 118, STEPS = 420;
   for (let it = 0; it < STEPS; it++) {
     const heat = 1 - (it / STEPS) * 0.86;
-    for (let i = 0; i < ALL.length; i++) {
-      const p = ALL[i];
+    for (let i = 0; i < WORLD.length; i++) {
+      const p = WORLD[i];
       p.vx *= 0.85; p.vy *= 0.85;
-      for (let j = i + 1; j < ALL.length; j++) {
-        const q = ALL[j];
+      for (let j = i + 1; j < WORLD.length; j++) {
+        const q = WORLD[j];
         let dx = p.x - q.x, dy = p.y - q.y, d2 = dx * dx + dy * dy;
         if (d2 < 1) { dx = Math.random() - 0.5; dy = Math.random() - 0.5; d2 = 1; }
         const d = Math.sqrt(d2), f = ((K * K) / d2) * heat;
@@ -659,32 +682,32 @@ function buildWorld(){
         q.vx -= (dx / d) * f; q.vy -= (dy / d) * f;
       }
     }
-    for (const e of EDGES) {
+    for (const e of WEDGES) {
       const p = N.get(e.a), q = N.get(e.b);
       const dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy) || 1;
       const f = ((d * d) / (K * 30)) * heat;
       p.vx += (dx / d) * f; p.vy += (dy / d) * f;
       q.vx -= (dx / d) * f; q.vy -= (dy / d) * f;
     }
-    for (const p of ALL) {
+    for (const p of WORLD) {
       p.vx -= p.x * 0.013 * heat; p.vy -= p.y * 0.013 * heat;
       p.x += Math.max(-18, Math.min(18, p.vx));
       p.y += Math.max(-18, Math.min(18, p.vy));
     }
   }
   const SPREAD = 2.4;
-  for (const p of ALL) { p.x *= SPREAD; p.y *= SPREAD; }
+  for (const p of WORLD) { p.x *= SPREAD; p.y *= SPREAD; }
 }
 buildWorld();
 
 /* 노드 반경: graph.html 과 같은 축척 규칙(r_base × (0.8 + 0.6 × log 피인용 정규화)). 걸어서 부딪히는 게임이라 최소 6px 은 남긴다 */
 const GFX = CG.gfx;
-const SCALE = (() => { let ml = 0; for (const n of ALL) ml = Math.max(ml, Math.log10((n.cites || 0) + 1)); return { rBase: GFX.rBase(ALL.length), eAlpha: GFX.edgeAlpha(EDGES.length), maxLog: ml || 1 }; })();
+const SCALE = (() => { let ml = 0; for (const n of WORLD) ml = Math.max(ml, Math.log10((n.cites || 0) + 1)); return { rBase: GFX.rBase(WORLD.length), eAlpha: GFX.edgeAlpha(WEDGES.length), maxLog: ml || 1 }; })();
 const nodeR = n => Math.max(6, GFX.nodeRadius(SCALE.rBase, GFX.citesNorm(n.cites, SCALE.maxLog)) * 2.6 * (RX.has(n.id) && (WGT[RX.get(n.id).r] || 0) > 0 ? 1.8 : RECS.has(n.id) ? 1.5 : 1));
 
 const BOUND = (() => {
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-  for (const n of ALL) { x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x); y1 = Math.max(y1, n.y); }
+  for (const n of WORLD) { x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x); y1 = Math.max(y1, n.y); }
   const m = 220;
   return { x0: x0 - m, y0: y0 - m, x1: x1 + m, y1: y1 + m };
 })();
@@ -704,7 +727,8 @@ const player = {
   dx: 0, dy: 1, dir: "down", walk: 0, walkDist: 0
 };
 const cam = { x: player.x, y: player.y };
-const G = { recalcs: 0, encounter: null, phase: "intro", cooldown: new Set() };
+const G = { recalcs: 0, encounter: null, phase: "intro", cooldown: new Set(), lastClose: 0 };
+const ENCOUNTER_GAP = 1500;   // 조우를 닫은 뒤 다음 조우까지 최소 간격(ms). 연속으로 부딪히는 것을 막는다
 
 /* 조합별 판정 집계.
    허브 보정 3 × 반감기 3 = 9가지 조합마다 {agree, judged} 를 따로 쌓는다.
@@ -792,7 +816,7 @@ function draw(){
 
   // 인용로
   ctx.lineWidth = 1.2;
-  for (const e of EDGES) {
+  for (const e of WEDGES) {
     const p = N.get(e.a), q = N.get(e.b);
     const ap = nodeAlpha(p, Math.hypot(p.x - player.x, p.y - player.y));
     const aq = nodeAlpha(q, Math.hypot(q.x - player.x, q.y - player.y));
@@ -806,7 +830,7 @@ function draw(){
 
   // 노드
   const labels = [];
-  for (const n of ALL) {
+  for (const n of WORLD) {
     const dist = Math.hypot(n.x - player.x, n.y - player.y);
     const a = nodeAlpha(n, dist);
     if (a <= 0.02) continue;
@@ -834,7 +858,7 @@ function draw(){
   ctx.textAlign = "center"; ctx.textBaseline = "top";
   const boxes = [];
   labels.sort((p, q) => p[4] - q[4]);            // 가까운 것부터 자리를 잡는다
-  const budget = GFX.labelBudget(ALL.length, 1) + RX.size + RECS.size;   // 라벨 수는 건수 규칙 (시드·추천은 예산 밖)
+  const budget = GFX.labelBudget(WORLD.length, 1) + RX.size + RECS.size;   // 라벨 수는 건수 규칙 (시드·추천은 예산 밖)
   let drawn = 0;
   for (const [n, X, Y, r] of labels) {
     if (drawn >= budget && !RX.has(n.id) && !RECS.has(n.id)) continue;
@@ -847,7 +871,7 @@ function draw(){
     ctx.fillStyle = RX.has(n.id) ? COL.caught : RECS.has(n.id) ? COL.beacon : COL.ink2;
     ctx.fillText(t, X, by + 2); drawn++;
   }
-  window.__gfx = { N: ALL.length, E: EDGES.length, rBase: SCALE.rBase, edgeAlpha: 0.55, labels: drawn };
+  window.__gfx = { N: WORLD.length, E: WEDGES.length, graphN: ALL.length, graphE: EDGES.length, rBase: SCALE.rBase, edgeAlpha: 0.55, labels: drawn };
 
   // 등불
   const px = sx(player.x), py = sy(player.y);
@@ -916,7 +940,7 @@ function drawMini(){
   const mx = wx => pad + (wx - BOUND.x0) * k + ((S - pad * 2) - bw * k) / 2;
   const my = wy => pad + (wy - BOUND.y0) * k + ((S - pad * 2) - bh * k) / 2;
 
-  for (const n of ALL) {
+  for (const n of WORLD) {
     const isRec = RECS.has(n.id);
     if (!n.seen && !isRec) continue;
     mctx.beginPath();
@@ -985,7 +1009,7 @@ function resolve(choice){
   const n = G.encounter;
   if (choice === "flee") {
     G.cooldown.add(n.id);
-    dlg.hidden = true; G.phase = "play"; G.encounter = null;
+    dlg.hidden = true; G.phase = "play"; G.encounter = null; G.lastClose = performance.now();
     syncCfg();
     return;
   }
@@ -998,7 +1022,7 @@ function resolve(choice){
   const before = new Set(RECS);
   RX.set(n.id, { r: choice, at: Date.now(), src: "session" });
   if (PG.usingProfile) CG.profile.addReaction(n.id, choice, "safari");   // 그래프 뷰·온보딩과 같은 프로필에 남긴다
-  RANK = fullRank(); RECS = new Set(RANK.slice(0, TOP_N));
+  RANK = fullRank(); RECS = worldRecs();
   G.recalcs++;
   const swapped = [...RECS].filter(id => !before.has(id)).length;
   n.seen = true;
@@ -1039,7 +1063,7 @@ function resolve(choice){
 function closeDialog(){
   dlg.hidden = true;
   if (G.encounter) G.cooldown.add(G.encounter.id);
-  G.encounter = null; G.phase = "play";
+  G.encounter = null; G.phase = "play"; G.lastClose = performance.now();
   syncCfg();                                     // 판정이 끝났으니 잠금을 푼다
 }
 
@@ -1053,7 +1077,7 @@ function toast(msg){
 
 function updateHUD(){
   const caught = [...RX.values()].filter(o => o.r === "read" || o.r === "liked").length;
-  document.getElementById("gDex").textContent = `${caught}/${ALL.length}`;
+  document.getElementById("gDex").textContent = `${caught}/${WORLD.length}`;
   const st = curStat();
   document.getElementById("gHit").textContent = st.judged ? `${st.agree}/${st.judged}` : "0/0";
   document.getElementById("gRecalc").textContent = G.recalcs;
@@ -1106,7 +1130,7 @@ function setParam(kind, v){
 
   // 순위를 통째로 다시 뽑는다. 비콘은 RECS 를 보고 그리므로 다음 프레임에 바로 바뀐다
   const before = new Set(RECS);
-  RANK = fullRank(); RECS = new Set(RANK.slice(0, TOP_N));
+  RANK = fullRank(); RECS = worldRecs();
   const swapped = [...RECS].filter(id => !before.has(id)).length;
 
   buildCfg(); updateHUD();
@@ -1170,7 +1194,7 @@ function openDex(){
       <b style="font-weight:500">${esc(shortName(o.n))}</b>
       <span>${{ read: "읽음", liked: "좋아요", skipped: "스킵" }[o.r]} · ${
         o.src === "session" ? "방금" : new Date(o.at).toISOString().slice(2, 10)}</span></li>`).join("")}</ul>
-    <div class="delta">전체 ${ALL.length}개 중 ${rows.length}개 조우. 남은 논문 ${ALL.length - rows.length}개.</div>
+    <div class="delta">이 구역 ${WORLD.length}개 중 ${rows.length}개 조우. 남은 논문 ${WORLD.length - rows.length}개 (전체 그래프 ${ALL.length}개).</div>
     <div class="choices" style="margin-top:12px"><button data-close>닫는다<b>Q</b></button></div>`;
   dexBox.querySelector("[data-close]").addEventListener("click", closeDex);
   dex.hidden = false; G.phase = "dex";
@@ -1272,7 +1296,8 @@ function step(){
       player.walk = 0;                          // 멈추면 선 자세로
     }
     // 조우 판정
-    for (const n of ALL) {
+    if (performance.now() - G.lastClose < ENCOUNTER_GAP) { /* 조우 직후 잠깐은 새 조우를 열지 않는다 */ }
+    else for (const n of WORLD) {
       const d = Math.hypot(n.x - player.x, n.y - player.y);
       const trigger = nodeR(n) + REACH_BASE * TRAIT.reach;
       if (G.cooldown.has(n.id)) { if (d > trigger * 2.2) G.cooldown.delete(n.id); continue; }

@@ -198,7 +198,7 @@ body { word-break: keep-all; }
   .report .facts span { font-size: 10.5px; color: var(--ink-3); }
 
   /* ── 그래프 ──────────────────────────────────────────── */
-  .canvasWrap { position: relative; min-height: 0; }
+  .canvasWrap { position: relative; min-height: 0; background: #0f0f0e; }   /* 캔버스는 거의 검정 (레퍼런스 별자리 룩) */
   canvas { display: block; width: 100%; height: 100%; }
   .tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff; font-size: 11.5px; padding: 5px 8px; border-radius: 6px; max-width: 280px; display: none; z-index: 5; }
   .legend { position: absolute; left: 12px; bottom: 10px; display: flex; gap: 10px; font-family: var(--mono); font-size: 10px; color: var(--ink-2); background: rgba(255,255,255,.7); padding: 4px 8px; border-radius: 6px; }
@@ -357,7 +357,7 @@ body { word-break: keep-all; }
         <canvas id="cv"></canvas>
         <div class="tip" id="tip"></div>
         <div class="stat" id="stat"></div>
-        <div class="legend"><span><i style="background:#A97406"></i>내 것</span><span><i style="background:#2B5FE3"></i>추천</span><span><i style="background:#8C8678"></i>스킵</span><span><i style="background:#C9C3B5"></i>외부</span></div>
+        <div class="legend"><span><i style="background:#E5B84A"></i>내 것</span><span><i style="background:#7DA2FF"></i>추천</span><span><i style="background:#8a877e"></i>스킵</span><span><i style="background:#e9e7df"></i>외부</span><span><i style="background:#a78bfa"></i>모델</span></div>
       </div>
       <div class="recs">
         <div class="head"><h3 id="recTitle">탐색</h3><span class="why" id="recWhy"></span></div>
@@ -376,6 +376,7 @@ body { word-break: keep-all; }
 <div id="cgLoading" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#F3F0E9;color:#5C564A;font:13px/1.5 -apple-system,BlinkMacSystemFont,'IBM Plex Sans KR',sans-serif;z-index:9999">코퍼스를 불러오는 중입니다 (약 3 MB)…</div>
 <script src="./assets/corpus.js"></script>
 <script src="./assets/profile.js"></script>
+<script src="./assets/gfx.js"></script>
 <script src="./assets/onboard-parse.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════
@@ -396,18 +397,29 @@ function persist() { P.history = history; P.picks = picks; P.funnel = funnel; P.
 
 /* ── 그래프: 범위(scope)로 거른 부분그래프. 시드가 바뀌면 다시 만든다 ── */
 let N = new Map(), ADJ = new Map(), OUT = new Map(), EDGES = [], POS = new Map(), ASPECT = 1, SUB = null;
+let edgeVer = 0;                          // 엣지 캐시 버전. 그래프가 바뀔 때마다 올린다
 const BY_ARXIV = K.byArxiv;
 function seedIdsNow() { return history.filter(h => h.node_id && (W[h.reaction] || 0) > 0).map(h => h.node_id).concat(picks).filter((v, i, arr) => arr.indexOf(v) === i); }
+let Wd = 0, Hd = 0, dpr = 1;   // 캔버스 크기. buildGraph 가 격자 완화 간격 계산에 쓰므로 먼저 선언한다
 function buildGraph() {
+  edgeVer++;
   SUB = CG.scopeGraph(K, scope, seedIdsNow());
   N = new Map(); ADJ = new Map(); OUT = new Map(); EDGES = []; POS = new Map();
   for (const n of SUB.nodes) { N.set(n.id, n); ADJ.set(n.id, []); OUT.set(n.id, []); }
   for (const e of SUB.edges) { EDGES.push([e.from, e.to]); ADJ.get(e.from).push(e.to); ADJ.get(e.to).push(e.from); OUT.get(e.from).push(e.to); }
-  // 사전 계산 좌표(전체 코퍼스 기준 0~1)를 부분그래프의 bbox 로 다시 정규화한다
-  let x0 = 1, y0 = 1, x1 = 0, y1 = 0;
-  for (const n of SUB.nodes) { x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x); y1 = Math.max(y1, n.y); }
+  // 사전 계산 좌표(전체 코퍼스 기준 0~1)는 부분그래프에서 중심만 촘촘하다. 균일 밀도 방사 리매핑(gfx.remapRadial) 뒤 bbox 로 다시 정규화한다
+  const pts = SUB.nodes.map(n => ({ id: n.id, x: n.x, y: n.y }));
+  CG.gfx.remapRadial(pts);                                           // r' = R × (0.5·r/R + 0.5·(rank/N)^0.66)
+  { // 격자 충돌 완화: 최소 간격 = 반경 × 2.2 를 정규화 좌표로 환산 (미리보기 캔버스 짧은 변 기준)
+    let R = 0, cx = 0, cy = 0; for (const p of pts) { cx += p.x; cy += p.y; } cx /= pts.length; cy /= pts.length;
+    for (const p of pts) R = Math.max(R, Math.hypot(p.x - cx, p.y - cy));
+    const px = Math.max(200, Math.min(Wd || 600, Hd || 500)) * 0.84;   // 화면에 펼쳐질 지름(px)
+    if (R > 0) CG.gfx.relaxGrid(pts, (CG.gfx.rBase(pts.length) * 2.2) * (2 * R / px), 30);
+  }
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of pts) { x0 = Math.min(x0, p.x); y0 = Math.min(y0, p.y); x1 = Math.max(x1, p.x); y1 = Math.max(y1, p.y); }
   const w = Math.max(1e-6, x1 - x0), h = Math.max(1e-6, y1 - y0);
-  for (const n of SUB.nodes) POS.set(n.id, SUB.nodes.length > 1 ? [(n.x - x0) / w, (n.y - y0) / h] : [0.5, 0.5]);
+  for (const p of pts) POS.set(p.id, pts.length > 1 ? [(p.x - x0) / w, (p.y - y0) / h] : [0.5, 0.5]);
   ASPECT = SUB.nodes.length > 1 ? Math.max(0.6, Math.min(1.8, w / h)) : 1;
 }
 buildGraph();
@@ -527,7 +539,6 @@ function renderStat() {
 
 /* ── 캔버스 ─────────────────────────────────────────────── */
 const cv = document.getElementById("cv"), ctx = cv.getContext("2d"), tip = document.getElementById("tip");
-let Wd = 0, Hd = 0, dpr = 1;
 function resize() {
   const r = cv.parentElement.getBoundingClientRect();
   dpr = window.devicePixelRatio || 1; Wd = r.width; Hd = r.height;
@@ -542,40 +553,60 @@ function toScreenIn(id, Wd, Hd) {
   const ox = pad + (w - s * ASPECT) / 2, oy = pad + (h - s) / 2;
   return [ox + px * s * ASPECT, oy + py * s];
 }
+/* 별자리 룩 (assets/gfx.js). 건수별 축척: 노드 반경 r_base, 엣지 알파, 라벨 예산. E > 8,000 이면 엣지를 오프스크린에 캐시 */
+const GFX = CG.gfx, GC = GFX.COLORS, LABEL_FONT = '"IBM Plex Sans KR", sans-serif';
+const EDGE_LAYER = GFX.EdgeLayer();
+let STARS = null;
+function gfxOf(nodes, edges) {
+  let ml = 0; for (const n of nodes) ml = Math.max(ml, Math.log10((n.cites || 0) + 1));
+  return { rBase: GFX.rBase(nodes.length), eAlpha: GFX.edgeAlpha(edges.length), maxLog: ml || 1, N: nodes.length, E: edges.length };
+}
 function draw() {
   if (!Wd) return;
-  ctx.clearRect(0, 0, Wd, Hd);
+  if (!STARS || STARS.W !== Wd || STARS.H !== Hd) STARS = { W: Wd, H: Hd, list: GFX.stars(Wd, Hd, 5) };
+  GFX.paintBackground(ctx, Wd, Hd, STARS.list);
   const rx = reactions(), recSet = new Set(recs.map(r => r.id));
   const hot = hotPath ? new Set(hotPath) : null;
-  const maxS = Math.max(1e-9, ...Object.values(scoreCache));
+  const g = gfxOf([...N.values()], EDGES);
+  const isSeed = id => rx.has(id) && (W[rx.get(id).r] || 0) > 0;
   // 엣지
-  for (const [a, b] of EDGES) {
-    const [x1, y1] = toScreen(a), [x2, y2] = toScreen(b);
-    let isHot = false;
-    if (hot) for (let i = 0; i + 1 < hotPath.length; i++) if ((hotPath[i] === a && hotPath[i + 1] === b) || (hotPath[i] === b && hotPath[i + 1] === a)) isHot = true;
-    ctx.strokeStyle = isHot ? "rgba(43,95,227,.9)" : (rx.has(a) || rx.has(b)) ? "rgba(169,116,6,.35)" : "rgba(92,86,74,.13)";
-    ctx.lineWidth = isHot ? 2.4 : 1;
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-  }
+  // 엣지: 기본 흰색, 시드 인접 ×1.6, 금색은 시드끼리 잇는 것과 "왜" 경로·호버 인접뿐 (graph.html 과 같은 규칙)
+  let goldEdges = 0;
+  const paintEdges = c => {
+    const plain = [], near = [], gold = [];
+    for (const [a, b] of EDGES) { const sa = isSeed(a), sb = isSeed(b); if (sa && sb) gold.push([a, b]); else if (sa || sb) near.push([a, b]); else plain.push([a, b]); }
+    const pass = (list, alpha, color, lw) => { c.globalAlpha = alpha; c.strokeStyle = color; c.lineWidth = lw; c.beginPath(); for (const [a, b] of list) { const [x1, y1] = toScreen(a), [x2, y2] = toScreen(b); c.moveTo(x1, y1); c.lineTo(x2, y2); } c.stroke(); };
+    pass(plain, g.eAlpha, GC.edge, GFX.EDGE_WIDTH); pass(near, Math.min(1, g.eAlpha * 1.6), GC.edge, GFX.EDGE_WIDTH); pass(gold, GFX.seedEdgeAlpha(gold.length), GC.gold, GFX.EDGE_WIDTH);
+    goldEdges += gold.length; c.globalAlpha = 1;
+  };
+  if (EDGES.length > 8000) ctx.drawImage(EDGE_LAYER.get([edgeVer, Wd, Hd, recs.map(r => r.id).join(","), history.length].join("|"), Wd, Hd, dpr, paintEdges), 0, 0, Wd, Hd);
+  else paintEdges(ctx);
+  if (EDGES.length > 8000) goldEdges = EDGES.reduce((k, [a, b]) => k + (isSeed(a) && isSeed(b) ? 1 : 0), 0);
+  if (hoverId) { ctx.lineWidth = 1; ctx.strokeStyle = GC.gold; ctx.globalAlpha = 0.7; ctx.beginPath(); for (const [a, b] of EDGES) if (a === hoverId || b === hoverId) { const [x1, y1] = toScreen(a), [x2, y2] = toScreen(b); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); goldEdges++; } ctx.stroke(); ctx.globalAlpha = 1; }
+  if (hot) { ctx.lineWidth = 1.5; ctx.strokeStyle = GC.hot; for (let i = 0; i + 1 < hotPath.length; i++) { const [x1, y1] = toScreen(hotPath[i]), [x2, y2] = toScreen(hotPath[i + 1]); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); goldEdges++; } }
   // 노드
+  const budget = GFX.labelBudget(g.N, 1);
+  const degSet = new Set([...N.keys()].sort((a, b) => ADJ.get(b).length - ADJ.get(a).length).slice(0, budget));
+  const labels = [];
   for (const n of N.values()) {
     const [x, y] = toScreen(n.id);
-    const r = rx.get(n.id);
-    const sc = Math.sqrt((scoreCache[n.id] || 0) / maxS);
-    let color = "#C9C3B5", rad = 3.2 + sc * 6, glow = null;
-    if (r) { color = r.r === "skipped" ? "#8C8678" : "#A97406"; rad = 6.5; }
-    else if (recSet.has(n.id)) { color = "#2B5FE3"; rad = 5 + sc * 5; glow = "rgba(43,95,227,.25)"; }
-    else if (n.kind === "model") color = "#B9AEE8";
-    else if (n.kind === "article") color = "#D9A3B0";
-    if (hot && hot.has(n.id)) { glow = "rgba(43,95,227,.35)"; rad += 2; }
-    if (hoverId === n.id) rad += 2;
-    if (glow) { ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(x, y, rad + 7, 0, Math.PI * 2); ctx.fill(); }
-    ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.fill();
-    if (r || recSet.has(n.id) || (hot && hot.has(n.id))) {
-      ctx.fillStyle = "#16150F"; ctx.font = "10.5px " + getComputedStyle(document.body).getPropertyValue("--sans");
-      ctx.fillText(short(n.title), x + rad + 4, y + 4);
-    }
+    const r0 = rx.get(n.id), seed = isSeed(n.id), rec = recSet.has(n.id), hov = hoverId === n.id;
+    let rad = GFX.nodeRadius(g.rBase, GFX.citesNorm(n.cites, g.maxLog));
+    let color = n.kind === "model" ? GC.model : n.kind === "article" ? GC.article : GC.node;
+    if (r0) { color = r0.r === "skipped" ? GC.skip : GC.gold; if (seed) rad *= 1.8; }
+    else if (rec) { color = GC.blue; rad *= 1.5; }
+    const inHot = hot && hot.has(n.id);
+    if (seed || rec || hov || inHot) GFX.glow(ctx, x, y, Math.max(rad, 2.5) * (seed && seedCount > 10 ? 0.5 : 1), seed ? "rgba(229,184,74,.55)" : rec ? "rgba(125,162,255,.5)" : "rgba(255,255,255,.35)");
+    ctx.globalAlpha = (hot && !inHot && !seed) ? 0.25 : (r0 || rec || hov) ? 1 : GC.nodeAlpha * GFX.brightness(n.id);
+    ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, rad + (hov ? 1.5 : 0), 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+    let pri = -1;
+    if (hov || inHot) pri = 4; else if (rec) pri = 3; else if (seed) pri = 2; else if (degSet.has(n.id)) pri = 1;
+    if (pri >= 0) labels.push({ x, y, rad, text: short(n.title), w: n.cites || 0, color: seed ? GC.gold : rec ? GC.blue : GC.label, pri });
   }
+  const cap = GFX.labelCap(Wd, Hd);
+  const L = GFX.drawLabels(ctx, labels, Wd, Hd, [], { font: GFX.FONT, size: GFX.LABEL_PX, limit: budget, total: cap, shift: false, halo: GC.bg });
+  window.__gfx = { N: g.N, E: g.E, rBase: g.rBase, edgeAlpha: g.eAlpha, labels: L.drawn, labelBoxes: L.boxes, labelCap: cap, labelBudget: budget, goldEdges, cached: EDGES.length > 8000 };
 }
 cv.addEventListener("mousemove", e => {
   const r = cv.getBoundingClientRect(); const mx = e.clientX - r.left, my = e.clientY - r.top;
@@ -883,33 +914,14 @@ function playTransition() {
   const font = getComputedStyle(document.body).getPropertyValue("--sans");
   const T_DIM = 0.6, T_WAVE = 0.6, T_POP = 2.4, T_END = 3.2, T_OUT = 3.5;
 
-  /* 라벨 배치: 기본은 노드 오른쪽. 화면 오른쪽을 넘으면 노드 왼쪽에 오른쪽 정렬, 그래도 넘으면 생략.
-     이미 그린 라벨의 bbox 와 겹치면 한 줄(라벨 높이+2px) 아래로 내려 보고, 그래도 겹치면 생략. 시드 라벨을 먼저 그린다. */
-  const placed = [];
+  /* 라벨 배치는 gfx.drawLabels (충돌 회피). 카운트 박스도 피한다 */
   function drawLabels(labels, Wv, Hv) {
-    placed.length = 0;
-    labels.sort((a, b) => (b.seed - a.seed) || (a.y - b.y));
-    const box = document.getElementById("ocount").getBoundingClientRect();   // 카운트 박스도 피한다
-    if (box.width) placed.push({ x0: box.left, y0: box.top, x1: box.right, y1: box.bottom });
-    const hit = (r) => placed.some(p => !(r.x1 < p.x0 || r.x0 > p.x1 || r.y1 < p.y0 || r.y0 > p.y1));
-    for (const L of labels) {
-      octx.font = L.size + "px " + font;
-      const w = octx.measureText(L.text).width, h = L.size + 2;
-      let x0 = L.x + L.rad + 6, align = "left";
-      if (x0 + w > Wv - 6) { x0 = L.x - L.rad - 6 - w; align = "right"; }
-      if (x0 < 6) continue;                                   // 양쪽 다 안 들어가면 생략
-      let y = L.y + 4, ok = false;
-      for (let tries = 0; tries < 2; tries++) {
-        const r = { x0, y0: y - h + 3, x1: x0 + w, y1: y + 3 };
-        if (r.y0 < 0 || r.y1 > Hv) break;
-        if (!hit(r)) { placed.push(r); ok = true; break; }
-        y += h + 2;                                           // 한 줄 아래로
-      }
-      if (!ok) continue;
-      octx.fillStyle = "#F3F0E9"; octx.textAlign = "left";
-      octx.fillText(L.text, x0, y);
-    }
+    const box = document.getElementById("ocount").getBoundingClientRect();
+    const avoid = box.width ? [{ x0: box.left, y0: box.top, x1: box.right, y1: box.bottom }] : [];
+    for (const L of labels) { L.pri = L.seed ? 3 : 2; L.color = L.seed ? GC.gold : GC.blue; }
+    GFX.drawLabels(octx, labels, Wv, Hv, avoid, { font, size: GFX.LABEL_PX, shift: true, halo: "#16150F" });
   }
+  const g = gfxOf([...N.values()], EDGES);   // 전환 장면도 같은 축척
 
   function frame(t) {   // t 초
     const Wv = innerWidth, Hv = innerHeight;
@@ -927,10 +939,10 @@ function playTransition() {
       const [x1, y1] = toScreenIn(a, Wv, Hv), [x2, y2] = toScreenIn(b, Wv, Hv);
       let lit = 0;
       if (ha !== Infinity && hb !== Infinity) { const far = Math.max(ha, hb); lit = clamp01((t - litAt(far) + 0.2) / 0.5); }
-      const base = 0.13 * (1 - dim) + 0.05;
-      const alpha = base + lit * 0.55;
+      const base = g.eAlpha * (1 - dim) + g.eAlpha * 0.6;          // 엣지 알파는 건수 규칙
+      const alpha = Math.min(1, base + lit * Math.max(0.5, g.eAlpha));
       octx.strokeStyle = lit > 0 ? `rgba(120,160,255,${alpha})` : `rgba(201,195,181,${base})`;
-      octx.lineWidth = 1 + lit * 1.2;
+      octx.lineWidth = 0.6 + lit * 1.2;
       octx.beginPath(); octx.moveTo(x1, y1); octx.lineTo(x2, y2); octx.stroke();
     }
     // 노드 (라벨은 모아 뒀다가 충돌을 피해 마지막에 그린다)
@@ -939,10 +951,11 @@ function playTransition() {
       const [x, y] = toScreenIn(n.id, Wv, Hv);
       const isSeed = rx.has(n.id) && (W[rx.get(n.id).r] || 0) > 0;
       const lit = isSeed ? 1 : nodeLit(n.id);
-      let rad = 3, color = `rgba(201,195,181,${0.9 - dim * 0.75 + lit * 0.7})`;
-      if (isSeed) { rad = 7 + Math.sin(t * 4) * 0.8; color = "#E5B84A"; }
-      else if (lit > 0) { rad = 3 + lit * 3; color = `rgba(120,160,255,${0.3 + lit * 0.7})`; }
-      if (recSet.has(n.id) && t >= T_POP) { const pp = ease(clamp01((t - T_POP) / 0.5)); rad += pp * 9; color = "#7DA2FF"; }
+      const r0 = GFX.nodeRadius(g.rBase, GFX.citesNorm(n.cites, g.maxLog));      // 건수 규칙 반경
+      let rad = r0, color = `rgba(233,231,223,${(0.9 - dim * 0.75 + lit * 0.7) * GFX.brightness(n.id)})`;
+      if (isSeed) { rad = r0 * 1.8 + 3 + Math.sin(t * 4) * 0.8; color = "#E5B84A"; }
+      else if (lit > 0) { rad = r0 + lit * 2; color = `rgba(120,160,255,${0.3 + lit * 0.7})`; }
+      if (recSet.has(n.id) && t >= T_POP) { const pp = ease(clamp01((t - T_POP) / 0.5)); rad = r0 * 1.5 + 2 + pp * 8; color = "#7DA2FF"; }
       if (isSeed || (recSet.has(n.id) && t >= T_POP)) { octx.fillStyle = isSeed ? "rgba(229,184,74,.25)" : "rgba(125,162,255,.28)"; octx.beginPath(); octx.arc(x, y, rad + 9, 0, Math.PI * 2); octx.fill(); }
       octx.fillStyle = color; octx.beginPath(); octx.arc(x, y, rad, 0, Math.PI * 2); octx.fill();
       if (isSeed || (recSet.has(n.id) && t >= T_POP + 0.2)) labels.push({ x, y, rad, text: short(n.title), size: isSeed ? 12 : 13, seed: isSeed });

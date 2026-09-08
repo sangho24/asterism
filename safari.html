@@ -426,6 +426,7 @@ body { word-break: keep-all; }
 <div id="cgLoading" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#F3F0E9;color:#5C564A;font:13px/1.5 -apple-system,BlinkMacSystemFont,'IBM Plex Sans KR',sans-serif;z-index:9999">코퍼스를 불러오는 중입니다 (약 3 MB)…</div>
 <script src="./assets/corpus.js"></script>
 <script src="./assets/profile.js"></script>
+<script src="./assets/gfx.js"></script>
 <script src="./data/reading-history.js"></script>
 <script src="./assets/sprites.js"></script>
 <script>
@@ -676,7 +677,10 @@ function buildWorld(){
 }
 buildWorld();
 
-const nodeR = n => n.kind === "paper" ? 7 + Math.min(13, Math.log10(n.cites + 10) * 2.7) : 9;
+/* 노드 반경: graph.html 과 같은 축척 규칙(r_base × (0.8 + 0.6 × log 피인용 정규화)). 걸어서 부딪히는 게임이라 최소 6px 은 남긴다 */
+const GFX = CG.gfx;
+const SCALE = (() => { let ml = 0; for (const n of ALL) ml = Math.max(ml, Math.log10((n.cites || 0) + 1)); return { rBase: GFX.rBase(ALL.length), eAlpha: GFX.edgeAlpha(EDGES.length), maxLog: ml || 1 }; })();
+const nodeR = n => Math.max(6, GFX.nodeRadius(SCALE.rBase, GFX.citesNorm(n.cites, SCALE.maxLog)) * 2.6 * (RX.has(n.id) && (WGT[RX.get(n.id).r] || 0) > 0 ? 1.8 : RECS.has(n.id) ? 1.5 : 1));
 
 const BOUND = (() => {
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
@@ -792,7 +796,7 @@ function draw(){
     const p = N.get(e.a), q = N.get(e.b);
     const ap = nodeAlpha(p, Math.hypot(p.x - player.x, p.y - player.y));
     const aq = nodeAlpha(q, Math.hypot(q.x - player.x, q.y - player.y));
-    const a = Math.min(ap, aq) * 0.55;
+    const a = Math.min(ap, aq) * 0.55;             // 엣지 알파는 게임 원래 값 (등불 안 0.55). 반경·라벨 규칙만 공유한다
     if (a < 0.03) continue;
     ctx.globalAlpha = a;
     ctx.strokeStyle = (RX.has(e.a) || RX.has(e.b)) ? COL.road : COL.edge;
@@ -830,7 +834,10 @@ function draw(){
   ctx.textAlign = "center"; ctx.textBaseline = "top";
   const boxes = [];
   labels.sort((p, q) => p[4] - q[4]);            // 가까운 것부터 자리를 잡는다
+  const budget = GFX.labelBudget(ALL.length, 1) + RX.size + RECS.size;   // 라벨 수는 건수 규칙 (시드·추천은 예산 밖)
+  let drawn = 0;
   for (const [n, X, Y, r] of labels) {
+    if (drawn >= budget && !RX.has(n.id) && !RECS.has(n.id)) continue;
     const t = shortName(n), w = ctx.measureText(t).width;
     const bx = X - w / 2 - 4, by = Y + r + 5, bw = w + 8, bh = 19;
     if (boxes.some(o => bx < o[0] + o[2] + 6 && bx + bw + 6 > o[0] && by < o[1] + bh && by + bh > o[1])) continue;
@@ -838,8 +845,9 @@ function draw(){
     ctx.fillStyle = "rgba(10,14,28,.78)";
     ctx.fillRect(bx, by, w + 8, 15);
     ctx.fillStyle = RX.has(n.id) ? COL.caught : RECS.has(n.id) ? COL.beacon : COL.ink2;
-    ctx.fillText(t, X, by + 2);
+    ctx.fillText(t, X, by + 2); drawn++;
   }
+  window.__gfx = { N: ALL.length, E: EDGES.length, rBase: SCALE.rBase, edgeAlpha: 0.55, labels: drawn };
 
   // 등불
   const px = sx(player.x), py = sy(player.y);

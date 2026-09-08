@@ -21,7 +21,7 @@
     --bg: #F3F0E9;
     --panel: #FFFFFF;
     --panel-2: #FAF8F3;
-    --stage: #EBE7DE;
+    --stage: #0f0f0e;            /* 캔버스는 거의 검정 (레퍼런스). 옆 패널은 종이색 그대로 */
     --ink: #16150F;
     --ink-2: #59554B;
     --ink-3: #8C8678;
@@ -159,9 +159,20 @@ body { word-break: keep-all; }   /* 한글은 단어 단위로 끊는다 */
 
   main {
     display: grid;
-    grid-template-columns: 258px minmax(0,1fr) 382px;
+    grid-template-columns: 258px minmax(0,1fr) 340px;
     min-height: 0;
+    position: relative;
   }
+  /* 왼쪽 레일 접기: 접히면 44px 아이콘 스트립만 남고, 펼치면 오버레이로 뜬다 (1440 미만 기본 접힘, 이상 기본 펼침. 상태는 세션에 기억) */
+  .railstrip { display: none; background: var(--panel); border-right: 1px solid var(--line); flex-direction: column; align-items: center; gap: 10px; padding: 10px 0; }
+  .railstrip button { width: 30px; height: 30px; border: 1px solid var(--line); background: var(--card); border-radius: 8px; cursor: pointer; color: var(--ink-2); font: 500 11px var(--sans); }
+  .railstrip button:hover { border-color: var(--line-2); color: var(--ink); }
+  .railstrip .lbl { writing-mode: vertical-rl; font: 10px var(--mono); color: var(--ink-3); letter-spacing: .08em; }
+  main.rail-collapsed { grid-template-columns: 44px minmax(0,1fr) 340px; }
+  main.rail-collapsed .railstrip { display: flex; }
+  main.rail-collapsed .rail { display: none; }
+  main.rail-collapsed.rail-overlay .rail { display: block; position: absolute; left: 44px; top: 0; bottom: 0; width: 258px; z-index: 6; box-shadow: 8px 0 28px rgba(0,0,0,.18); }
+  .rail .railclose { float: right; border: 1px solid var(--line); background: var(--card); border-radius: 6px; font: 500 10.5px var(--sans); color: var(--ink-2); padding: 3px 7px; cursor: pointer; }
 
   aside, .stage { min-height: 0; min-width: 0; }
   .rail {
@@ -253,6 +264,16 @@ body { word-break: keep-all; }   /* 한글은 단어 단위로 끊는다 */
     pointer-events: none;
   }
   .zoomer { position: absolute; right: 12px; bottom: 11px; display: flex; gap: 4px; }
+  .stagehint { left: 190px; }
+  @media (max-width: 700px) { .stagehint { display: none; } }
+  .spacing { position: absolute; left: 12px; bottom: 11px; display: flex; border: 1px solid rgba(255,255,255,.14); border-radius: 8px; overflow: hidden; background: rgba(20,20,18,.85); }
+  .spacing button { border: 0; background: transparent; color: #b9b6ad; font: 500 10.5px var(--sans); padding: 5px 9px; cursor: pointer; }
+  .spacing button[aria-pressed="true"] { background: rgba(255,255,255,.12); color: #f2f0ea; }
+  .searchbar { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: min(420px, calc(100% - 24px)); z-index: 3; }
+  .searchbar input { width: 100%; box-sizing: border-box; height: 34px; border-radius: 999px; border: 1px solid rgba(255,255,255,.16); background: rgba(22,22,20,.9); color: #f2f0ea; padding: 0 38px 0 16px; font: 12.5px var(--sans); outline: none; box-shadow: 0 6px 24px rgba(0,0,0,.35); }
+  .searchbar input::placeholder { color: #8f8c83; }
+  .searchbar input:focus { border-color: rgba(229,184,74,.55); }
+  .searchbar .n { position: absolute; right: 12px; top: 0; height: 34px; display: flex; align-items: center; font: 10.5px var(--mono); color: #8f8c83; pointer-events: none; }
   .zoomer button {
     width: 26px; height: 26px;
     background: var(--panel); color: var(--ink-2);
@@ -374,6 +395,10 @@ body { word-break: keep-all; }   /* 한글은 단어 단위로 끊는다 */
     main { grid-template-columns: 1fr; grid-template-rows: 300px auto auto; }
     .app { height: auto; }
     .rail { border-right: 0; border-bottom: 1px solid var(--line); order: 2; }
+    main.rail-collapsed { grid-template-columns: 1fr; }
+    main.rail-collapsed .railstrip { display: none; }
+    main.rail-collapsed .rail, main.rail-collapsed.rail-overlay .rail { display: block; position: static; width: auto; box-shadow: none; }
+    .rail .railclose { display: none; }
     .stage { order: 1; }
     .side { border-left: 0; border-top: 1px solid var(--line); order: 3; }
     .pane { max-height: none; }
@@ -418,8 +443,10 @@ body { word-break: keep-all; }   /* 한글은 단어 단위로 끊는다 */
   </div>
   <div class="onbanner" id="onbanner"></div>
 
-  <main>
-    <aside class="rail">
+  <main id="main">
+    <aside class="railstrip" id="railstrip"><button id="railOpen" title="렌즈·랭킹 패널 펼치기" aria-label="패널 펼치기">≡</button><span class="lbl">렌즈 · 랭킹 · 보정</span></aside>
+    <aside class="rail" id="rail">
+      <button class="railclose" id="railClose" title="패널 접기">접기 ‹</button>
       <div class="blk">
         <h2>렌즈</h2>
         <div class="seg" id="lens"></div>
@@ -482,6 +509,8 @@ body { word-break: keep-all; }   /* 한글은 단어 단위로 끊는다 */
 
     <div class="stage" id="stage">
       <canvas id="cv"></canvas>
+      <div class="searchbar"><input id="search" type="search" placeholder="제목으로 찾기 (Enter: 첫 결과로 이동)" autocomplete="off" aria-label="노드 검색"><span class="n" id="searchN"></span></div>
+      <div class="spacing" id="spacing" title="노드 간격"><button data-sp="narrow">좁게</button><button data-sp="normal">보통</button><button data-sp="wide" aria-pressed="true">넓게</button></div>
       <div class="stagehint">드래그 = 이동 · 휠 = 확대 · 노드 클릭 = 문서</div>
       <div class="zoomer">
         <button id="zin" title="확대">+</button>
@@ -508,6 +537,7 @@ body { word-break: keep-all; }   /* 한글은 단어 단위로 끊는다 */
 <div id="cgLoading" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#F3F0E9;color:#5C564A;font:13px/1.5 -apple-system,BlinkMacSystemFont,'IBM Plex Sans KR',sans-serif;z-index:9999">코퍼스를 불러오는 중입니다 (약 3 MB)…</div>
 <script src="./assets/corpus.js"></script>
 <script src="./assets/profile.js"></script>
+<script src="./assets/gfx.js"></script>
 <script src="./data/reading-history.js"></script>
 <script>
 "use strict";
@@ -621,7 +651,9 @@ const state = {
   hotPath: null,
   recalcs: 0,
   sessionActs: 0,
-  zoom: 1, panX: 0, panY: 0
+  zoom: 1, panX: 0, panY: 0,
+  spacing: 1.3,           // 간격 3단 (0.8 / 1 / 1.3). 기본 넓게. 세션 안에서만
+  search: "", searchHits: new Set()
 };
 /* 시드: 프로필이 있으면 프로필 이력(온보딩·사파리·그래프 뷰가 같은 것을 쓴다), 없으면 mock 이력 */
 const USE_PROFILE = PG.usingProfile;
@@ -1062,7 +1094,7 @@ function visibleSet(){
 const cv = $("#cv"), ctx = cv.getContext("2d");
 let VIS = [], VEDGES = [], DPR = 1, Wd = 800, Hd = 600;
 const BIG_GRAPH = 350;                 // 이보다 크면 포스 시뮬레이션을 끄고 사전 계산 좌표만 쓴다
-const LAYOUT_SPAN = Math.max(700, 22 * Math.sqrt(N.size) * 4);   // 사전 계산 좌표(0~1)를 펼칠 폭
+const LAYOUT_SPAN = Math.max(700, 22 * Math.sqrt(N.size) * 4);   // 사전 계산 좌표(0~1)를 펼칠 폭. 배치는 r' = R × (0.5·r/R + 0.5·(rank/N)^0.66) 리매핑 뒤 격자 완화
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
@@ -1086,8 +1118,8 @@ function layoutVisible(refit){
   const fresh = [];
   for (const id of vs) {
     const n = N.get(id);
-    if (!n.placed) {
-      // 사전 계산된 코퍼스 좌표(0~1)에서 시작한다. 없으면 무작위 원 위
+    if (!n.placed || refit) {
+      // 사전 계산된 코퍼스 좌표(0~1)에서 시작한다. 없으면 무작위 원 위. refit 이면 드래그로 옮긴 것도 원위치
       const p = CORPUS_POS.get(id);
       if (p) { n.x = (p[0] - 0.5) * LAYOUT_SPAN; n.y = (p[1] - 0.5) * LAYOUT_SPAN; }
       else { const a = Math.random() * Math.PI * 2, rr = 120 + Math.random() * 180; n.x = Math.cos(a) * rr; n.y = Math.sin(a) * rr; }
@@ -1096,7 +1128,15 @@ function layoutVisible(refit){
     fresh.push(n);
   }
   VIS = fresh;
+  // 부분그래프는 중심만 촘촘하다. r' = R × (0.5·r/R + 0.5·(rank/N)^0.66), 각도 유지. 그 위에 격자 충돌 완화로 중심 겹침만 푼다 (assets/gfx.js)
+  if (refit && VIS.length > 1) {
+    const R = LAYOUT_SPAN * 0.5;
+    GFX.remapRadial(VIS, R);
+    const zoomEst = Math.min(Wd, Hd) * 0.84 / (2 * R);                          // fit 뒤 예상 줌
+    GFX.relaxGrid(VIS, (GFX.rBase(VIS.length) * 2.2) / Math.max(zoomEst, 0.02), 30);   // 최소 간격 = 반경 × 2.2 (레이아웃 단위로 환산)
+  }
   VEDGES = EDGES.filter(e => vs.has(e.a) && vs.has(e.b)).map(e => ({ a: N.get(e.a), b: N.get(e.b), type: e.type }));
+  gfxPrepare();
   // 노드가 많으면 O(n²) 포스 틱을 돌리지 않고 사전 계산 좌표를 그대로 쓴다 (4천 노드에서 틱 하나가 수백 ms)
   if (VIS.length <= BIG_GRAPH) for (let i = 0; i < (refit ? 260 : 90); i++) tick();
   if (refit) fit();
@@ -1135,102 +1175,154 @@ function tick(heat = 1){
 
 function fit(){
   if (!VIS.length) return;
+  // 노드 전체 bbox 에 맞춘다 (리매핑·충돌 완화 뒤라 이상치가 없다). 패딩 8%
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-  for (const n of VIS) { x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x); y1 = Math.max(y1, n.y); }
-  const pad = 70;
+  for (const n of VIS) { const X = wx(n), Y = wy(n); x0 = Math.min(x0, X); y0 = Math.min(y0, Y); x1 = Math.max(x1, X); y1 = Math.max(y1, Y); }
+  const pad = Math.min(Wd, Hd) * 0.08;
   const z = Math.min((Wd - pad * 2) / Math.max(x1 - x0, 1), (Hd - pad * 2) / Math.max(y1 - y0, 1));
-  state.zoom = Math.max(0.25, Math.min(2.2, z));
+  state.zoom = Math.max(0.02, Math.min(4, z));
   state.panX = -((x0 + x1) / 2) * state.zoom;
   state.panY = -((y0 + y1) / 2) * state.zoom;
+  edgeVer++;
 }
+
+/* ── 별자리 룩과 건수별 축척 (assets/gfx.js 의 규칙) ── */
+const GFX = CG.gfx, GC = GFX.COLORS;
+const LABEL_FONT = '"IBM Plex Sans KR", sans-serif';
+const EDGE_LAYER = GFX.EdgeLayer();
+let STARS = null, edgeVer = 0, interacting = false, interactTimer = null, edgePaint = null;
+let CX = 0, CY = 0, MAXLOG = 1, R_BASE = 3, E_ALPHA = 0.2, DEG_RANK = [];
+/* 팬·줌·드래그 중에는 라벨을 시드·추천만 그린다. 멈추고 180ms 뒤 정책대로 */
+function poke(){ interacting = true; clearTimeout(interactTimer); interactTimer = setTimeout(() => { interacting = false; }, 180); }
+function gfxPrepare(){
+  const n = VIS.length || 1;
+  let sx = 0, sy = 0, ml = 0;
+  for (const v of VIS) { sx += v.x; sy += v.y; ml = Math.max(ml, Math.log10((v.cites || 0) + 1)); }
+  CX = sx / n; CY = sy / n; MAXLOG = ml || 1;
+  R_BASE = GFX.rBase(VIS.length); E_ALPHA = GFX.edgeAlpha(VEDGES.length);
+  DEG_RANK = VIS.slice().sort((a, b) => (ADJ.get(b.id) || []).length - (ADJ.get(a.id) || []).length).map(v => v.id);
+  edgeVer++;
+}
+/* 간격: 무게중심 기준 방사 스케일 */
+const wx = n => CX + (n.x - CX) * state.spacing, wy = n => CY + (n.y - CY) * state.spacing;
+const isSeed = id => { const rx = state.reactions.get(id); return !!rx && (W[rx.r] || 0) > 0; };
 
 function nodeColor(n){
   const rx = state.reactions.get(n.id);
-  if (state.lens === "topic" && n.kind === "paper") return (TOPICS[n.topic] || ["", "#888"])[1];
-  if (rx) {
-    if (rx.r === "skipped") return css("--ink-3");
-    if (rx.r === "later") return css("--slate");
-    return css("--gold");
-  }
-  if (recSet.has(n.id)) return css("--teal");
-  if (n.kind === "model") return css("--indigo");
-  if (n.kind === "article") return css("--rose");
-  return css("--slate");
+  if (rx) { if (rx.r === "skipped") return GC.skip; if (rx.r === "later") return "#b9b6ad"; return GC.gold; }
+  if (recSet.has(n.id)) return GC.blue;
+  if (state.lens === "topic" && n.kind === "paper") return GFX.topicColor(n.topic);
+  if (n.kind === "model") return GC.model;
+  if (n.kind === "article") return GC.article;
+  return GC.node;
 }
+/* 반경 = r_base × (0.8 + 0.6 × log 피인용 정규화). 시드 ×1.8, 추천 ×1.5. 줌은 제곱근으로 완만하게 */
 function nodeRadius(n){
-  const s = (scoreCache[n.id] || 0) / maxScore;
-  const base = state.reactions.has(n.id) ? 6 : 3.6;
-  return base + Math.sqrt(Math.max(s, 0)) * 15;
+  let r = GFX.nodeRadius(R_BASE, GFX.citesNorm(n.cites, MAXLOG));
+  if (isSeed(n.id)) r *= 1.8; else if (recSet.has(n.id)) r *= 1.5;
+  return r;
 }
+const zoomK = () => Math.min(1.6, Math.max(0.7, Math.sqrt(state.zoom)));
 
 function toScreen(n){
-  return [Wd / 2 + state.panX + n.x * state.zoom, Hd / 2 + state.panY + n.y * state.zoom];
+  return [Wd / 2 + state.panX + wx(n) * state.zoom, Hd / 2 + state.panY + wy(n) * state.zoom];
 }
 
 function draw(){
-  ctx.clearRect(0, 0, Wd, Hd);
+  if (!STARS || STARS.W !== Wd || STARS.H !== Hd) STARS = { W: Wd, H: Hd, list: GFX.stars(Wd, Hd, 11) };
+  GFX.paintBackground(ctx, Wd, Hd, STARS.list);
   const hot = state.hotPath ? new Set(state.hotPath) : null;
   const hotEdges = new Set();
   if (state.hotPath) for (let i = 1; i < state.hotPath.length; i++)
     hotEdges.add(state.hotPath[i - 1] + "|" + state.hotPath[i]).add(state.hotPath[i] + "|" + state.hotPath[i - 1]);
 
-  // edges
-  ctx.lineWidth = 1;
-  for (const e of VEDGES) {
-    const key = e.a.id + "|" + e.b.id;
-    const isHot = hotEdges.has(key);
-    const [ax, ay] = toScreen(e.a), [bx, by] = toScreen(e.b);
-    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by);
-    if (isHot) { ctx.strokeStyle = css("--edge-hot"); ctx.lineWidth = 2; }
-    else if (hot) { ctx.strokeStyle = css("--edge"); ctx.globalAlpha = 0.25; ctx.lineWidth = 1; }
-    else { ctx.strokeStyle = e.type === "describes" ? css("--indigo") : css("--edge"); ctx.globalAlpha = e.type === "describes" ? 0.4 : 1; ctx.lineWidth = 1; }
+  /* 엣지: 기본 흰색(알파 규칙). 시드 인접은 흰색 ×1.6. 금색은 시드끼리 잇는 엣지, 호버·선택·검색 노드의 인접 엣지, "왜" 경로뿐.
+     E > 8,000 이면 오프스크린에 캐시하고 팬·줌·범위 변경 때만 다시 그린다 (호버 인접 금색은 캐시 밖에서 매 프레임) */
+  const bright = new Set([state.selected].filter(Boolean)); for (const id of state.searchHits) bright.add(id);   // 흰색 ×2.5
+  let goldEdges = 0;
+  const paintEdgesWide = (c, cw, ch) => {
+    c.lineWidth = 0.6; c.strokeStyle = GC.edge;
+    const mx = (cw - Wd) / 2, my = (ch - Hd) / 2;   // 오버스캔 여백 (뷰포트 밖도 이만큼 그린다)
+    const plain = [], near = [], gold = [];
+    for (const e of VEDGES) {
+      const sa = isSeed(e.a.id), sb = isSeed(e.b.id);
+      if (sa && sb) gold.push(e); else if (sa || sb) near.push(e); else plain.push(e);
+    }
+    const pass = (list, alpha, color, lw) => {
+      c.globalAlpha = alpha; c.strokeStyle = color; c.lineWidth = lw; c.beginPath();
+      for (const e of list) {
+        const [ax, ay] = toScreen(e.a), [bx, by] = toScreen(e.b);
+        if ((ax < -mx && bx < -mx) || (ay < -my && by < -my) || (ax > Wd + mx && bx > Wd + mx) || (ay > Hd + my && by > Hd + my)) continue;
+        c.moveTo(ax, ay); c.lineTo(bx, by);
+      }
+      c.stroke();
+    };
+    pass(plain, E_ALPHA, GC.edge, GFX.EDGE_WIDTH);
+    pass(near, Math.min(1, E_ALPHA * 1.6), GC.edge, GFX.EDGE_WIDTH);
+    pass(gold, GFX.seedEdgeAlpha(gold.length), GC.gold, GFX.EDGE_WIDTH);
+    goldEdges += gold.length;
+    c.globalAlpha = 1;
+  };
+  const paintEdges = c => paintEdgesWide(c, Wd, Hd);
+  if (VEDGES.length > 8000) {
+    // 팬은 다시 그리지 않고 캐시를 밀어서 쓴다. 뷰포트의 1.6배로 그려 두고, 그린 시점에서 30% 넘게 밀리면 그때 다시 그린다
+    const OS = 1.6, ow = Wd * OS, oh = Hd * OS;
+    const drift = !edgePaint || Math.abs(state.panX - edgePaint.px) > Wd * 0.3 || Math.abs(state.panY - edgePaint.py) > Hd * 0.3;
+    const key = [state.zoom.toFixed(3), state.spacing, edgeVer, Wd, Hd, drift ? Math.round(state.panX) + "," + Math.round(state.panY) : edgePaint.k].join("|");
+    const layer = EDGE_LAYER.get(key, ow, oh, DPR, c => {
+      edgePaint = { px: state.panX, py: state.panY, k: Math.round(state.panX) + "," + Math.round(state.panY) };
+      c.translate((ow - Wd) / 2, (oh - Hd) / 2); paintEdgesWide(c, ow, oh);
+    });
+    ctx.drawImage(layer, -(ow - Wd) / 2 + (state.panX - edgePaint.px), -(oh - Hd) / 2 + (state.panY - edgePaint.py), ow, oh);
+    goldEdges = VEDGES.reduce((k, e) => k + (isSeed(e.a.id) && isSeed(e.b.id) ? 1 : 0), 0);
+  } else paintEdges(ctx);
+  const liveAdj = (ids, color, alpha, lw, countGold) => {
+    ctx.lineWidth = lw; ctx.strokeStyle = color; ctx.globalAlpha = alpha; ctx.beginPath();
+    for (const e of VEDGES) if (ids.has(e.a.id) || ids.has(e.b.id)) { const [ax, ay] = toScreen(e.a), [bx, by] = toScreen(e.b); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); if (countGold) goldEdges++; }
     ctx.stroke(); ctx.globalAlpha = 1;
+  };
+  if (bright.size) liveAdj(bright, GC.edge, Math.min(1, E_ALPHA * 2.5), GFX.EDGE_WIDTH, false);       // 선택·검색 인접: 흰색 ×2.5
+  if (dragging) liveAdj(new Set([dragging.id]), GC.edge, Math.min(1, E_ALPHA * 2), GFX.EDGE_WIDTH, false);   // 드래그 중 인접 엣지는 캐시 밖에서 라이브
+  if (state.hover) liveAdj(new Set([state.hover]), GC.gold, 0.7, 1, true);                            // 호버 인접: 금색
+  if (hot) {                                                    // "왜" 경로: 금색 1.5px
+    ctx.lineWidth = 1.5; ctx.strokeStyle = GC.hot; ctx.globalAlpha = 0.95;
+    for (const e of VEDGES) if (hotEdges.has(e.a.id + "|" + e.b.id)) { const [ax, ay] = toScreen(e.a), [bx, by] = toScreen(e.b); ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); goldEdges++; }
+    ctx.globalAlpha = 1;
   }
 
-  // nodes
-  const labelled = [];
+  /* 노드: 작은 별. 밝기는 결정적 해시. 글로우는 시드·추천·호버·검색에만 */
+  const zk = zoomK();
+  const SEED_COUNT = [...state.reactions.values()].filter(o => (W[o.r] || 0) > 0).length;
+  const budget = interacting ? 0 : GFX.labelBudget(VIS.length, state.zoom);
+  const degSet = new Set(budget === Infinity ? DEG_RANK : DEG_RANK.slice(0, budget));
+  const labels = [];
   for (const n of VIS) {
     const [x, y] = toScreen(n);
-    const r = nodeRadius(n) * Math.min(1.4, Math.max(0.6, state.zoom));
+    if (x < -30 || y < -30 || x > Wd + 30 || y > Hd + 30) continue;
+    const r = nodeRadius(n) * zk;
+    const seed = isSeed(n.id), rec = recSet.has(n.id), rx = state.reactions.has(n.id);
+    const hi = n.id === state.selected || n.id === state.hover || state.searchHits.has(n.id);
     const dim = hot && !hot.has(n.id);
-    ctx.globalAlpha = dim ? 0.22 : 1;
+    if (!dim && (seed || rec || hi)) GFX.glow(ctx, x, y, Math.max(r, 2.5) * (seed && !hi && SEED_COUNT > 10 ? 0.5 : 1), seed ? "rgba(229,184,74,.55)" : rec ? "rgba(125,162,255,.5)" : "rgba(255,255,255,.35)");
+    ctx.globalAlpha = dim ? 0.18 : (seed || rec || rx || hi) ? 1 : GC.nodeAlpha * GFX.brightness(n.id);
     ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832);
     ctx.fillStyle = nodeColor(n); ctx.fill();
-    if (state.selected === n.id || state.hover === n.id) {
-      ctx.lineWidth = 2; ctx.strokeStyle = css("--ink"); ctx.stroke();
-    } else if (state.reactions.has(n.id)) {
-      ctx.lineWidth = 1.5; ctx.strokeStyle = css("--stage"); ctx.stroke();
-    }
+    if (hi) { ctx.lineWidth = 1.2; ctx.strokeStyle = "#ffffff"; ctx.stroke(); }
     ctx.globalAlpha = 1;
+    // 라벨 우선순위: 호버·검색 4 > 추천 3 > 시드(피인용 순) 2 > 차수 상위 1. 충돌하면 생략, 정지 상태 총 상한은 화면 면적 기준
     let pri = -1;
-    if (n.id === state.selected || n.id === state.hover) pri = 3;
-    else if (hot && hot.has(n.id)) pri = 3;
-    else if (recSet.has(n.id)) pri = 2;
-    else if (state.reactions.has(n.id) && state.zoom > 0.75) pri = 1;
-    if (!dim && pri >= 0) labelled.push({ n, x, y, r, pri });
+    if (hi || (hot && hot.has(n.id))) pri = 4;
+    else if (rec) pri = 3;
+    else if (seed) pri = 2;
+    else if (!interacting && degSet.has(n.id)) pri = 1;
+    if (!dim && pri >= 0) labels.push({ x, y, rad: r, text: shortName(n), w: n.cites || 0, color: seed ? GC.gold : rec ? GC.blue : hi ? "#ffffff" : GC.label, pri });
   }
-
-  ctx.font = '500 10.5px "IBM Plex Sans KR", sans-serif';
-  ctx.textAlign = "center"; ctx.textBaseline = "top";
-  labelled.sort((a, b) => b.pri - a.pri);
-  const boxes = [];
-  for (const L of labelled) {
-    const t = shortName(L.n);
-    const w = ctx.measureText(t).width;
-    const cx = Math.max(w / 2 + 5, Math.min(Wd - w / 2 - 5, L.x));
-    const bx = cx - w / 2 - 3, by = L.y + L.r + 3, bw = w + 6, bh = 14;
-    if (boxes.some(o => bx < o[0] + o[2] && bx + bw > o[0] && by < o[1] + o[3] && by + bh > o[1])) continue;
-    boxes.push([bx, by, bw, bh]);
-    ctx.globalAlpha = 0.85;
-    ctx.fillStyle = css("--stage");
-    ctx.fillRect(bx, by, bw, bh);
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = state.reactions.has(L.n.id) ? css("--gold") : recSet.has(L.n.id) ? css("--teal") : css("--ink-2");
-    ctx.fillText(t, cx, by + 1);
-  }
+  const cap = interacting ? 0 : GFX.labelCap(Wd, Hd);
+  const L = GFX.drawLabels(ctx, labels, Wd, Hd, [{ x0: Wd / 2 - 220, y0: 0, x1: Wd / 2 + 220, y1: 50 }], { font: GFX.FONT, size: GFX.LABEL_PX, limit: budget === Infinity ? null : budget, total: cap, shift: false, halo: GC.bg });
+  window.__gfx = { N: VIS.length, E: VEDGES.length, rBase: R_BASE, edgeAlpha: E_ALPHA, labels: L.drawn, labelBoxes: L.boxes, labelCap: cap, labelBudget: budget, goldEdges, spacing: state.spacing, zoom: state.zoom, cached: VEDGES.length > 8000 };
 }
 
-let raf, dragging = null, panning = false, last = null;
+let raf, dragging = null, panning = false, last = null, dragMoved = false;
 let alpha = 0;                                  // 시뮬레이션 열량. 0 이면 레이아웃이 멈춘다
 const reheat = v => { alpha = Math.max(alpha, v); };
 function loop(){
@@ -1245,7 +1337,7 @@ function pick(px, py){
   for (const n of VIS) {
     const [x, y] = toScreen(n);
     const d = Math.hypot(x - px, y - py);
-    const r = nodeRadius(n) * Math.min(1.4, Math.max(0.6, state.zoom)) + 5;
+    const r = nodeRadius(n) * zoomK() + 5;
     if (d < r && d < bd) { bd = d; best = n; }
   }
   return best;
@@ -1260,13 +1352,16 @@ addEventListener("mousemove", e => {
   const r = cv.getBoundingClientRect();
   const px = e.clientX - r.left, py = e.clientY - r.top;
   if (dragging) {
-    dragging.x += (e.clientX - last[0]) / state.zoom;
-    dragging.y += (e.clientY - last[1]) / state.zoom;
+    poke();
+    dragging.x += (e.clientX - last[0]) / (state.zoom * state.spacing);   // 화면 1px = 레이아웃 1/(zoom×spacing)
+    dragging.y += (e.clientY - last[1]) / (state.zoom * state.spacing);
+    dragMoved = true;
     dragging.vx = dragging.vy = 0;
     reheat(0.25);
     last = [e.clientX, e.clientY]; return;
   }
   if (panning) {
+    poke();
     state.panX += e.clientX - last[0]; state.panY += e.clientY - last[1];
     last = [e.clientX, e.clientY]; return;
   }
@@ -1285,8 +1380,8 @@ addEventListener("mousemove", e => {
   } else tip.classList.remove("on");
 });
 addEventListener("mouseup", e => {
-  if (dragging && Math.abs(e.clientX - last[0]) < 3) { /* click-ish */ }
-  dragging = null; panning = false; cv.classList.remove("grabbing");
+  if (dragging && dragMoved) edgeVer++;            // 드래그가 끝나면 엣지 캐시를 다시 그린다
+  dragging = null; panning = false; dragMoved = false; cv.classList.remove("grabbing");
 });
 cv.addEventListener("click", e => {
   const r = cv.getBoundingClientRect();
@@ -1300,12 +1395,52 @@ cv.addEventListener("wheel", e => {
   const mx = e.clientX - r.left - Wd / 2, my = e.clientY - r.top - Hd / 2;
   state.panX = mx - (mx - state.panX) * f;
   state.panY = my - (my - state.panY) * f;
-  state.zoom = Math.max(0.2, Math.min(4, state.zoom * f));
+  state.zoom = Math.max(0.02, Math.min(4, state.zoom * f));
+  poke();
 }, { passive: false });
 
-$("#zin").onclick = () => { state.zoom = Math.min(4, state.zoom * 1.25); };
-$("#zout").onclick = () => { state.zoom = Math.max(0.2, state.zoom / 1.25); };
+$("#zin").onclick = () => { state.zoom = Math.min(4, state.zoom * 1.25); poke(); };
+$("#zout").onclick = () => { state.zoom = Math.max(0.02, state.zoom / 1.25); poke(); };
 $("#zfit").onclick = () => fit();
+/* 간격 3단: 무게중심 기준 0.8 / 1 / 1.3 배. 바꾸면 다시 fit */
+document.querySelectorAll("#spacing button").forEach(b => b.addEventListener("click", () => {
+  state.spacing = GFX.SPACING[b.dataset.sp] || 1;
+  document.querySelectorAll("#spacing button").forEach(o => o.setAttribute("aria-pressed", String(o === b)));
+  fit();
+}));
+/* 검색: 제목 부분 일치. 일치 노드를 하이라이트하고 Enter(또는 첫 입력)에 첫 결과로 카메라 이동 */
+function runSearch(go){
+  const q = state.search.trim().toLowerCase();
+  state.searchHits = new Set();
+  if (!q) { $("#searchN").textContent = ""; return; }
+  const hits = [...N.values()].filter(n => (n.title || "").toLowerCase().includes(q));
+  for (const h of hits) state.searchHits.add(h.id);
+  $("#searchN").textContent = hits.length ? `${hits.length}건` : "없음";
+  if (!go || !hits.length) return;
+  const first = hits.find(h => VIS.includes(h)) || hits[0];
+  if (!VIS.includes(first)) { state.lens = "all"; buildSeg($("#lens"), LENSES, "lens"); layoutVisible(true); renderAll(); }
+  state.zoom = Math.max(state.zoom, 1.3);
+  state.panX = -wx(first) * state.zoom; state.panY = -wy(first) * state.zoom;
+  edgeVer++;
+  selectNode(first.id);                                   // 노드 클릭과 같은 경로: 문서 탭 + renderDoc
+}
+/* 레일 접힘·펼침. 1440px 미만은 기본 접힘(펼치면 오버레이), 이상은 기본 펼침. 세션에 기억 */
+const railMQ = matchMedia("(min-width: 1440px)");
+function railState(){ let v = null; try { v = sessionStorage.getItem("cg.graph.rail"); } catch (e) {} return v === "open" || v === "closed" ? v : (railMQ.matches ? "open" : "closed"); }
+function applyRail(v){
+  const m = $("#main");
+  if (v === "open" && railMQ.matches) { m.classList.remove("rail-collapsed", "rail-overlay"); }
+  else if (v === "open") { m.classList.add("rail-collapsed", "rail-overlay"); }
+  else { m.classList.add("rail-collapsed"); m.classList.remove("rail-overlay"); }
+  try { sessionStorage.setItem("cg.graph.rail", v); } catch (e) {}
+  requestAnimationFrame(() => { resize(); fit(); });
+}
+$("#railOpen").onclick = () => applyRail("open");
+$("#railClose").onclick = () => applyRail("closed");
+railMQ.addEventListener("change", () => applyRail(railState()));
+applyRail(railState());
+$("#search").addEventListener("input", e => { state.search = e.target.value; runSearch(false); });
+$("#search").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); runSearch(true); } if (e.key === "Escape") { e.target.value = ""; state.search = ""; runSearch(false); e.target.blur(); } });
 $("#zshake").onclick = () => reheat(0.9);
 $("#reset").onclick = () => { seedState(); layoutVisible(true); renderAll(); setTab("next"); };
 document.querySelector(".tabs").onclick = e => {

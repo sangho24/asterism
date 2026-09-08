@@ -374,12 +374,14 @@ body { word-break: keep-all; }
       <dt>도감</dt><dd id="gDex" style="color:var(--caught)">0/0</dd>
       <dt>판정 일치</dt><dd id="gHit" style="color:var(--beacon)">0/0</dd>
       <dt>재계산</dt><dd id="gRecalc">0</dd>
+      <dt>구역</dt><dd id="gZone">1</dd>
     </dl>
     <div class="bar"><i id="gBar" style="width:0%"></i></div>
     <div style="font-family:var(--mono);font-size:9.5px;color:var(--ink-3);margin-top:5px" id="gCombo"></div>
   </div>
   <div class="keys">
     <button id="btnDex">도감 (Q)</button>
+    <button id="btnZone" title="이 구역에서 5개 이상 판정하면 넘어갈 수 있다" disabled>다음 구역 (N)</button>
     <button id="btnCfg" aria-expanded="false" aria-controls="cfg">설정 (E)</button>
   </div>
   <div class="plate cfg" id="cfg" hidden></div>
@@ -596,21 +598,26 @@ let RANK = fullRank();
    시드 + 추천 상위 60 + 시드→추천 근거 경로 위 노드 + 시드 이웃(차수 순)으로 최대 WORLD_CAP 개만 월드에 놓는다.
    랭킹(PPR)은 여전히 전체 그래프에서 계산한다. 월드는 "보여 주는 조각"일 뿐이다. */
 const WORLD_CAP = 140;
+const G = { recalcs: 0, encounter: null, phase: "intro", cooldown: new Set(), lastClose: 0, zone: 1 };
+/* 앵커 = 최근에 읽은(양의 반응) 것 8개. 구역은 앵커 주변에서 뽑는다 */
+function anchorIds(){
+  return [...RX].filter(([id, o]) => N.has(id) && (WGT[o.r] || 0) > 0).slice(-8).map(([id]) => id);
+}
 function pickWorld(){
   if (ALL.length <= WORLD_CAP) return ALL.slice();
   const keep = new Set();
-  for (const id of RX.keys()) if (N.has(id)) keep.add(id);
+  for (const id of (G.zone > 1 ? anchorIds() : [...RX.keys()].filter(id => N.has(id)))) keep.add(id);   // 첫 구역은 시드 전부, 다음 구역부터는 앵커만
   for (const id of RANK.slice(0, 60)) keep.add(id);
   for (const id of RANK.slice(0, TOP_N * 2)) { const path = whyPath(id); if (path) for (const x of path) keep.add(x); }
   const cand = new Map();
-  for (const id of [...keep]) for (const m of (ADJ.get(id) || [])) if (!keep.has(m)) cand.set(m, (cand.get(m) || 0) + 1);
+  for (const id of [...keep]) for (const m of (ADJ.get(id) || [])) if (!keep.has(m) && !RX.has(m)) cand.set(m, (cand.get(m) || 0) + 1);   // 이미 판정한 것은 새 구역에 넣지 않는다
   const rest = [...cand.entries()].sort((a, b) => b[1] - a[1] || (N.get(b[0]).cites - N.get(a[0]).cites)).map(e => e[0]);
   for (const id of rest) { if (keep.size >= WORLD_CAP) break; keep.add(id); }
   return ALL.filter(n => keep.has(n.id));
 }
-const WORLD = pickWorld();
-const WORLD_IDS = new Set(WORLD.map(n => n.id));
-const WEDGES = EDGES.filter(e => WORLD_IDS.has(e.a) && WORLD_IDS.has(e.b));
+let WORLD = pickWorld();
+let WORLD_IDS = new Set(WORLD.map(n => n.id));
+let WEDGES = EDGES.filter(e => WORLD_IDS.has(e.a) && WORLD_IDS.has(e.b));
 /* 비콘(추천 상위)은 월드 안에 있는 것만. 판정 때 보여 주는 "그래프 순위"는 전체 RANK 기준이다 */
 const worldRecs = () => new Set(RANK.filter(id => WORLD_IDS.has(id)).slice(0, TOP_N));
 let RECS = worldRecs();
@@ -702,15 +709,17 @@ buildWorld();
 
 /* 노드 반경: graph.html 과 같은 축척 규칙(r_base × (0.8 + 0.6 × log 피인용 정규화)). 걸어서 부딪히는 게임이라 최소 6px 은 남긴다 */
 const GFX = CG.gfx;
-const SCALE = (() => { let ml = 0; for (const n of WORLD) ml = Math.max(ml, Math.log10((n.cites || 0) + 1)); return { rBase: GFX.rBase(WORLD.length), eAlpha: GFX.edgeAlpha(WEDGES.length), maxLog: ml || 1 }; })();
+const computeScale = () => { let ml = 0; for (const n of WORLD) ml = Math.max(ml, Math.log10((n.cites || 0) + 1)); return { rBase: GFX.rBase(WORLD.length), eAlpha: GFX.edgeAlpha(WEDGES.length), maxLog: ml || 1 }; };
+let SCALE = computeScale();
 const nodeR = n => Math.max(6, GFX.nodeRadius(SCALE.rBase, GFX.citesNorm(n.cites, SCALE.maxLog)) * 2.6 * (RX.has(n.id) && (WGT[RX.get(n.id).r] || 0) > 0 ? 1.8 : RECS.has(n.id) ? 1.5 : 1));
 
-const BOUND = (() => {
+const computeBound = () => {
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
   for (const n of WORLD) { x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x); y1 = Math.max(y1, n.y); }
   const m = 220;
   return { x0: x0 - m, y0: y0 - m, x1: x1 + m, y1: y1 + m };
-})();
+};
+let BOUND = computeBound();
 
 /* ─────────────────────────────────────────────────────────
    게임 상태
@@ -727,7 +736,6 @@ const player = {
   dx: 0, dy: 1, dir: "down", walk: 0, walkDist: 0
 };
 const cam = { x: player.x, y: player.y };
-const G = { recalcs: 0, encounter: null, phase: "intro", cooldown: new Set(), lastClose: 0 };
 const ENCOUNTER_GAP = 1500;   // 조우를 닫은 뒤 다음 조우까지 최소 간격(ms). 연속으로 부딪히는 것을 막는다
 
 /* 조합별 판정 집계.
@@ -897,6 +905,11 @@ function draw(){
   }
 
   drawCompass();
+  if (zoneFade > 0) {   // 구역 전환: 어둠에서 밝아진다
+    ctx.fillStyle = `rgba(6,9,20,${(zoneFade * 0.95).toFixed(3)})`; ctx.fillRect(0, 0, VW, VH);
+    if (zoneFade > 0.5) { ctx.fillStyle = COL.lamp; ctx.font = `700 22px ${GFX.FONT}`; ctx.textAlign = "center"; ctx.globalAlpha = Math.min(1, (zoneFade - 0.5) * 4); ctx.fillText(`구역 ${G.zone}`, VW / 2, VH / 2); ctx.globalAlpha = 1; ctx.textAlign = "left"; }
+    zoneFade = Math.max(0, zoneFade - 0.022);
+  }
   drawMini();
 }
 
@@ -1060,11 +1073,36 @@ function resolve(choice){
   toast(swapped ? `그래프 재계산 · 추천 ${swapped}개 교체` : "그래프 재계산 · 변동 없음");
 }
 
+/* 다음 구역: 지금까지의 반응으로 랭킹을 다시 계산하고, 앵커 주변에서 아직 판정하지 않은 논문으로 구역을 새로 뽑는다 */
+const zoneLeft = () => WORLD.filter(n => !RX.has(n.id)).length;
+const zoneJudged = () => WORLD.filter(n => RX.has(n.id) && RX.get(n.id).src === "session").length;
+let zoneFade = 0;   // 전환 연출(0~1)
+function nextZone(){
+  if (G.phase === "encounter" || G.phase === "verdict") return;
+  G.zone++;
+  RANK = fullRank();
+  WORLD = pickWorld(); WORLD_IDS = new Set(WORLD.map(n => n.id));
+  WEDGES = EDGES.filter(e => WORLD_IDS.has(e.a) && WORLD_IDS.has(e.b));
+  RECS = worldRecs();
+  buildWorld();
+  SCALE = computeScale(); BOUND = computeBound();
+  for (const n of WORLD) n.seen = RX.has(n.id);
+  const anchors = anchorIds().map(id => N.get(id)).filter(n => WORLD_IDS.has(n.id));
+  const base = anchors.length ? anchors : WORLD.slice(0, 1);
+  player.x = base.reduce((a, n) => a + n.x, 0) / base.length;
+  player.y = base.reduce((a, n) => a + n.y, 0) / base.length;
+  cam.x = player.x; cam.y = player.y;
+  G.cooldown.clear(); G.lastClose = performance.now();
+  zoneFade = reduceMotion ? 0 : 1;
+  toast(`구역 ${G.zone} · 새 논문 ${zoneLeft()}개`);
+  updateHUD();
+}
 function closeDialog(){
   dlg.hidden = true;
   if (G.encounter) G.cooldown.add(G.encounter.id);
   G.encounter = null; G.phase = "play"; G.lastClose = performance.now();
   syncCfg();                                     // 판정이 끝났으니 잠금을 푼다
+  if (zoneLeft() === 0 && ALL.length > WORLD_CAP) nextZone();   // 구역을 다 판정했으면 다음 구역으로
 }
 
 let toastTimer;
@@ -1081,6 +1119,10 @@ function updateHUD(){
   const st = curStat();
   document.getElementById("gHit").textContent = st.judged ? `${st.agree}/${st.judged}` : "0/0";
   document.getElementById("gRecalc").textContent = G.recalcs;
+  const big = ALL.length > WORLD_CAP;
+  document.getElementById("gZone").textContent = big ? `${G.zone} · 남은 ${zoneLeft()}` : "1";
+  const zb = document.getElementById("btnZone");
+  if (zb) { zb.disabled = !big || zoneJudged() < 5; zb.hidden = !big; }
   document.getElementById("gBar").style.width = (st.judged ? (st.agree / st.judged) * 100 : 0) + "%";
   document.getElementById("gCombo").textContent = comboLabel(PARAM.hubexp, PARAM.halfLife)
     + (st.judged === 0 ? " · 미측정" : st.judged < MIN_SAMPLE ? " · 표본 부족" : "");
@@ -1201,6 +1243,7 @@ function openDex(){
 }
 function closeDex(){ dex.hidden = true; G.phase = "play"; }
 document.getElementById("btnDex").addEventListener("click", () => G.phase === "dex" ? closeDex() : openDex());
+document.getElementById("btnZone").addEventListener("click", () => { if (G.phase === "play" && zoneJudged() >= 5) nextZone(); });
 
 /* ─────────────────────────────────────────────────────────
    입력 · 루프
@@ -1217,6 +1260,7 @@ addEventListener("keydown", e => {
   if (G.phase === "verdict") { if (k === " " || k === "Enter" || k === "Escape") { e.preventDefault(); closeDialog(); } return; }
   if (G.phase === "dex") { if (k === "q" || k === "Q" || k === "Escape") closeDex(); return; }
   if (k === "q" || k === "Q") { openDex(); return; }
+  if ((k === "n" || k === "N") && G.phase === "play" && ALL.length > WORLD_CAP && zoneJudged() >= 5) { nextZone(); return; }
   if (k === "e" || k === "E") { toggleCfg(); return; }
   if (k.startsWith("Arrow") || "wasdWASD".includes(k)) { e.preventDefault(); keys.add(k.toLowerCase()); }
 });

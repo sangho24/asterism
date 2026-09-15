@@ -634,7 +634,7 @@ README 가 걱정한 "6월에 읽은 것으로 8월 논문을 맞히는데 그 �
 ## 8. 재현
 
 ```bash
-cd /Users/sangho/checkpoint-graph
+cd /Users/sangho/asterism
 
 # 1) OpenAlex 해소 (캐시가 있으면 네트워크를 때리지 않는다)
 node backtest/fetch-openalex.mjs          # 다시 받으려면 --force

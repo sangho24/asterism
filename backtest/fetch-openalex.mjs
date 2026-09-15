@@ -36,7 +36,7 @@ async function api(params) {
     stats.requests++;
     try {
       const res = await fetch(url, {
-        headers: { "User-Agent": `checkpoint-graph-backtest (mailto:${MAILTO})` }
+        headers: { "User-Agent": `asterism-backtest (mailto:${MAILTO})` }
       });
       if (res.status === 429 || res.status >= 500) throw new Error(`HTTP ${res.status}`);
       if (!res.ok) return { ok: false, reason: `HTTP ${res.status}`, results: [] };

@@ -53,7 +53,7 @@ async function call(url, init = {}) {
       res = await fetch(url, {
         ...init,
         headers: {
-          "User-Agent": "checkpoint-graph-backtest",
+          "User-Agent": "asterism-backtest",
           ...(API_KEY ? { "x-api-key": API_KEY } : {}),
           ...(init.headers || {})
         }

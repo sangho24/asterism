@@ -1,0 +1,1340 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>프로젝트 소개 · Asterism</title>
+<meta name="description" content="추천이 만들어지는 네 단계, 추천 카드를 읽는 법, 백테스트로 잰 것과 아직 재지 못한 것.">
+<link rel="icon" type="image/svg+xml" href="./assets/mark.svg">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Asterism">
+<meta property="og:title" content="프로젝트 소개 · Asterism">
+<meta property="og:description" content="추천이 만들어지는 네 단계, 추천 카드를 읽는 법, 백테스트로 잰 것과 아직 재지 못한 것.">
+<meta property="og:url" content="https://sangho24.github.io/asterism/about.html">
+<meta property="og:image" content="https://sangho24.github.io/asterism/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Asterism 의 인용 그래프와 한 줄 소개">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* ══ 토큰: 따뜻한 종이 + 선명한 파랑. 단일 세계로 확정한다 ══ */
+:root {
+  color-scheme: light;
+  --paper:   #F3F0E9;
+  --card:    #FFFFFF;
+  --card-2:  #FAF8F3;
+  --ink:     #16150F;
+  --ink-2:   #59554B;
+  --ink-3:   #8C8678;
+  --line:    #E4DED2;
+  --line-2:  #D2CABA;
+  --blue:    #2B5FE3;
+  --blue-2:  #1E47B4;
+  --wash:    #E9EEFC;
+  --gold:    #A97406;
+  --screen:  #0A0E1C;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --sans: "Gothic A1", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+  --nav-w: 232px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 18px; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--sans); font-size: 15px; line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+
+/* ══ 사이트 셸 (모든 페이지 공통) ══════════════════════ */
+:root { --cg-nav-w: 232px; --cg-paper:#F3F0E9; --cg-card:#FFFFFF; --cg-card2:#FAF8F3;
+  --cg-ink:#16150F; --cg-ink2:#59554B; --cg-ink3:#8C8678; --cg-line:#E4DED2;
+  --cg-line2:#D2CABA; --cg-blue:#2B5FE3; --cg-blue2:#1E47B4; --cg-wash:#E9EEFC;
+  --cg-sans:"Gothic A1",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
+  --cg-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; }
+.cg-nav {
+  position: fixed; inset: 0 auto 0 0; width: var(--cg-nav-w); z-index: 60;
+  background: var(--cg-card); border-right: 1px solid var(--cg-line);
+  display: flex; flex-direction: column; padding: 20px 14px 16px;
+  font-family: var(--cg-sans); color: var(--cg-ink);
+}
+.cg-brand { display: flex; gap: 10px; align-items: center; text-decoration: none; padding: 0 6px 18px; color: inherit; }
+.cg-brand .cg-mark { width: 32px; height: 32px; flex: none; display: block; overflow: visible; }
+.cg-brand b { font-size: 14px; font-weight: 800; letter-spacing: -.02em; display: block; line-height: 1.3; }
+.cg-brand i { font-style: normal; font-size: 10.5px; color: var(--cg-ink3); font-family: var(--cg-mono); }
+.cg-menu { display: flex; flex-direction: column; gap: 2px; }
+.cg-menu a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px;
+  text-decoration: none; font-size: 13.5px; font-weight: 500; color: var(--cg-ink2); }
+.cg-menu a:hover { background: var(--cg-card2); color: var(--cg-ink); }
+.cg-menu a[aria-current="page"] { background: var(--cg-wash); color: var(--cg-blue2); font-weight: 700; }
+.cg-menu svg { flex: none; width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+.cg-menu .cg-sub { margin-left: auto; font-family: var(--cg-mono); font-size: 9.5px; color: var(--cg-ink3); }
+.cg-menu a[aria-current="page"] .cg-sub { color: var(--cg-blue); }
+.cg-foot { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid var(--cg-line);
+  display: flex; flex-direction: column; gap: 5px; font-family: var(--cg-mono); font-size: 10.5px; color: var(--cg-ink3); }
+.cg-foot a { color: var(--cg-ink3); text-decoration: none; }
+.cg-foot a:hover { color: var(--cg-blue); }
+.cg-anchors { margin-top: 14px; padding-top: 11px; border-top: 1px solid var(--cg-line);
+  display: flex; flex-direction: column; gap: 1px; }
+.cg-anchors a { font-size: 12px; color: var(--cg-ink3); text-decoration: none;
+  padding: 5px 10px; border-radius: 6px; }
+.cg-anchors a:hover { background: var(--cg-card2); color: var(--cg-ink); }
+@media (max-width: 900px) { .cg-anchors { display: none; } }
+.cg-shift { margin-left: var(--cg-nav-w); }
+body { word-break: keep-all; }   /* 한글은 단어 단위로 끊는다 */
+@media (max-width: 900px) {
+  .cg-nav { position: static; width: auto; flex-direction: row; align-items: center;
+    border-right: 0; border-bottom: 1px solid var(--cg-line); padding: 10px 14px; gap: 14px; }
+  .cg-brand { padding: 0; }
+  .cg-brand .cg-bn { display: none; }
+  .cg-menu { flex-direction: row; gap: 4px; }
+  .cg-menu .cg-sub { display: none; }
+  .cg-foot { display: none; }
+  .cg-shift { margin-left: 0; }
+}
+@media (max-width: 480px) {
+  .cg-nav { flex-wrap: wrap; gap: 8px 10px; padding: 8px 10px; }
+  .cg-menu { flex-wrap: wrap; width: 100%; }
+  .cg-menu a { padding: 5px 8px; font-size: 12px; gap: 6px; }
+  .cg-menu svg { width: 15px; height: 15px; }
+}
+
+main { }
+.wrap { max-width: 1080px; padding: 0 34px; margin: 0 auto; }
+@media (max-width: 900px) { .wrap { padding: 0 18px; } }
+
+/* ══ 히어로 ════════════════════════════════════════════ */
+.hero {
+  padding: 40px 0 20px;
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.08fr);
+  gap: 34px; align-items: center;
+}
+@media (max-width: 980px) { .hero { grid-template-columns: 1fr; gap: 22px; } }
+.eyebrow {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--blue); margin-bottom: 14px;
+}
+h1 {
+  margin: 0 0 13px; font-size: clamp(26px, 3.1vw, 36px); font-weight: 800;
+  letter-spacing: -.035em; line-height: 1.25; text-wrap: balance; max-width: 19ch;
+}
+.hero .lede { margin: 0 0 20px; font-size: 15px; color: var(--ink-2); max-width: 46ch; }
+.hero .lede b { color: var(--ink); font-weight: 700; }
+
+.cta { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 0; }
+.cta a {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 11px 18px; border-radius: 9px; text-decoration: none;
+  font-size: 14px; font-weight: 700; border: 1px solid transparent;
+}
+.cta .prim { background: var(--blue); color: #fff; }
+.cta .prim:hover { background: var(--blue-2); }
+.cta .sec { background: var(--card); border-color: var(--line-2); color: var(--ink); }
+.cta .sec:hover { border-color: var(--blue); color: var(--blue); }
+
+/* 데모 스크린 */
+.screen {
+  position: relative; background: var(--screen);
+  border-radius: 14px; overflow: hidden;
+  border: 1px solid #1D2437;
+  box-shadow: 0 1px 2px rgba(22,21,15,.06), 0 22px 50px -18px rgba(22,21,15,.26);
+}
+.screen .bezel {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 13px; border-bottom: 1px solid #1B2235; background: #0D1220;
+}
+.screen .bezel i { width: 8px; height: 8px; border-radius: 50%; background: #262E45; }
+.screen .bezel span {
+  margin-left: 6px; font-family: var(--mono); font-size: 10.5px; color: #6B7794;
+}
+.screen .bezel em {
+  margin-left: auto; font-style: normal; font-family: var(--mono);
+  font-size: 9.5px; letter-spacing: .12em; color: #35E0C2;
+}
+.screen canvas { display: block; width: 100%; aspect-ratio: 16 / 10.5; }
+.screen .fallback {
+  position: absolute; inset: auto 0 0 0; padding: 10px 13px;
+  font-family: var(--mono); font-size: 10.5px; color: #6B7794;
+}
+
+/* ══ 추천이 만들어지는 과정 (스크롤 연동 + 고정 비주얼) ══ */
+.how { display: grid; grid-template-columns: 1fr 1.12fr; gap: 38px; align-items: start; }
+.how .track { display: flex; flex-direction: column; gap: 10px; }
+.how .step {
+  border: 1px solid var(--line); border-radius: 12px; background: var(--card);
+  padding: 13px 16px; transition: border-color .25s, box-shadow .25s, opacity .25s;
+  opacity: .55;
+}
+.how .step[data-on="1"] {
+  opacity: 1; border-color: var(--blue);
+  box-shadow: 0 1px 2px rgba(22,21,15,.05), 0 10px 26px -14px rgba(43,95,227,.4);
+}
+.how .step .n {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 21px; height: 21px; border-radius: 6px; margin-bottom: 9px;
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  background: var(--card-2); color: var(--ink-3); border: 1px solid var(--line);
+}
+.how .step[data-on="1"] .n { background: var(--blue); color: #fff; border-color: var(--blue); }
+.how .step h3 { margin: 0 0 6px; font-size: 16px; font-weight: 800; letter-spacing: -.02em; }
+.how .step p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.65; max-width: none; }
+.how .step p b { color: var(--ink); font-weight: 700; }
+.how .step .f {
+  margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--line);
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); overflow-x: auto;
+}
+.how .step .f b { color: var(--blue-2); font-weight: 500; }
+
+.how .pin { position: sticky; top: 26px; }
+.how .pin .screen { border-radius: 12px; }
+.how .pin .cap {
+  margin-top: 9px; font-family: var(--mono); font-size: 10.5px;
+  color: var(--ink-3); display: flex; gap: 9px; align-items: center;
+}
+.how .pin .cap i { font-style: normal; color: var(--blue); }
+.how .pin canvas { display: block; width: 100%; aspect-ratio: 4 / 3; }
+
+@media (max-width: 860px) {
+  .how { grid-template-columns: 1fr; gap: 18px; }
+  .how .pin { position: sticky; top: 8px; order: -1; z-index: 5; background: var(--paper); padding-bottom: 8px; }
+  .how .pin canvas { aspect-ratio: 16 / 10; }
+  .how .step { opacity: 1; }
+}
+
+/* ══ 결과 읽는 법 (주석 달린 실제 카드) ══════════════════ */
+.read { display: grid; grid-template-columns: 340px 1fr; gap: 28px; align-items: start; }
+@media (max-width: 800px) { .read { grid-template-columns: 1fr; } }
+
+.reccard {
+  background: var(--card); border: 1px solid var(--line); border-radius: 11px;
+  padding: 13px 14px; box-shadow: 0 1px 2px rgba(22,21,15,.05), 0 14px 34px -20px rgba(22,21,15,.3);
+}
+.reccard .row1 { display: flex; gap: 9px; align-items: baseline; }
+.reccard .rk { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--blue); }
+.reccard h4 { margin: 0; font-size: 14px; font-weight: 700; line-height: 1.35; letter-spacing: -.01em; }
+.reccard .meta {
+  display: flex; flex-wrap: wrap; gap: 3px 11px; margin: 6px 0 0 25px;
+  font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); font-variant-numeric: tabular-nums;
+}
+.reccard .why {
+  margin: 9px 0 0 25px; padding: 8px 10px; background: var(--card-2);
+  border-radius: 7px; font-size: 12px; line-height: 1.6; color: var(--ink-2);
+}
+.reccard .why .lab {
+  display: block; font-family: var(--mono); font-size: 9px; letter-spacing: .12em;
+  color: var(--ink-3); margin-bottom: 3px;
+}
+.reccard .why em { font-style: normal; color: var(--gold); font-weight: 700; }
+.reccard .why .conn { display: block; color: var(--ink-3); font-size: 11px; }
+.reccard .why strong { color: var(--ink); font-weight: 700; }
+.reccard .acts { display: flex; gap: 5px; margin: 10px 0 0 25px; }
+.reccard .acts span {
+  flex: 1; text-align: center; padding: 5px 0; font-size: 11px; color: var(--ink-2);
+  background: var(--card-2); border: 1px solid var(--line); border-radius: 6px;
+}
+.mk {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 17px; height: 17px; border-radius: 5px; flex: none;
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  background: var(--blue); color: #fff; vertical-align: 1px;
+}
+.reccard .mk { margin-right: 6px; }
+.reccard .acts .mk { flex: none; align-self: center; }
+
+.keyed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.keyed li { display: flex; gap: 11px; font-size: 13.5px; color: var(--ink-2); line-height: 1.65; }
+.keyed li b { color: var(--ink); font-weight: 700; }
+.keyed li .mk { margin-top: 3px; }
+
+/* ══ 백테스트 막대 비교 ═══════════════════════════════════ */
+.chart { margin: 0 0 18px; }
+.chart .legend {
+  display: flex; gap: 16px; flex-wrap: wrap; align-items: center;
+  font-size: 12px; color: var(--ink-2); margin-bottom: 14px;
+}
+.chart .legend span { display: inline-flex; align-items: center; gap: 6px; }
+.chart .legend i { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+.chart .legend i.ppr { background: #2B5FE3; }
+.chart .legend i.base { background: #A97406; }
+.chart .legend i.rand { width: 14px; height: 0; border-top: 2px dashed var(--ink-3); border-radius: 0; }
+
+.plot { position: relative; }
+.plot .ref {
+  position: absolute; top: -4px; bottom: 17px;
+  left: calc(148px + (100% - 196px) * 0.3722);
+  border-left: 2px dashed var(--ink-3); pointer-events: none;
+}
+.plot .ref b {
+  position: absolute; top: -2px; left: 7px; white-space: nowrap;
+  font-family: var(--mono); font-size: 10px; font-weight: 400; color: var(--ink-3);
+}
+.row {
+  display: grid; grid-template-columns: 148px 1fr 48px;
+  align-items: center; gap: 0; padding: 3px 0; position: relative;
+}
+.row:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 5px; }
+.row .lb { font-size: 12.5px; color: var(--ink-2); padding-right: 12px; }
+.row.best .lb { color: var(--ink); font-weight: 700; }
+.row .tr { height: 17px; position: relative; }
+.row .tr i {
+  display: block; height: 100%; border-radius: 0 4px 4px 0;
+  background: #2B5FE3; transition: filter .15s;
+}
+.row .tr i.base { background: #A97406; }
+.row .v {
+  font-family: var(--mono); font-size: 12px; text-align: right;
+  font-variant-numeric: tabular-nums; color: var(--ink-2);
+}
+.row.best .v { color: var(--ink); font-weight: 500; }
+.row:hover .tr i, .row:focus-visible .tr i { filter: brightness(1.12); }
+.row::after {
+  content: attr(data-tip); position: absolute; left: 150px; top: -30px; z-index: 4;
+  background: var(--ink); color: var(--paper); padding: 5px 9px; border-radius: 6px;
+  font-family: var(--mono); font-size: 10.5px; white-space: nowrap;
+  opacity: 0; pointer-events: none; transition: opacity .12s;
+}
+.row:hover::after, .row:focus-visible::after { opacity: 1; }
+/* 좁은 화면에서는 툴팁을 행의 오른쪽 끝에 붙인다. left:150px 고정이면 뷰포트를 1px 넘겨 가로 스크롤이 생긴다 */
+@media (max-width: 480px) { .row::after { left: auto; right: 0; white-space: normal; max-width: 100%; } }
+.plot .axis {
+  display: flex; justify-content: space-between; margin: 6px 148px 0 148px;
+  padding-right: 48px; font-family: var(--mono); font-size: 10px; color: var(--ink-3);
+}
+@media (max-width: 620px) {
+  .row { grid-template-columns: 108px 1fr 44px; }
+  .plot .ref { left: calc(108px + (100% - 152px) * 0.3722); }
+  .plot .axis { margin: 6px 108px 0 108px; padding-right: 44px; }
+  .row .lb { font-size: 11.5px; }
+}
+
+.verdict {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+  background: var(--line); border: 1px solid var(--line); border-radius: 10px;
+  overflow: hidden; margin-top: 20px;
+}
+@media (max-width: 620px) { .verdict { grid-template-columns: 1fr; } }
+.verdict > div { background: var(--card); padding: 13px 15px; }
+.verdict dt { margin: 0 0 3px; font-size: 11.5px; color: var(--ink-3); }
+.verdict dd { margin: 0; font-family: var(--mono); font-size: 19px; letter-spacing: -.02em; }
+.verdict dd small { font-family: var(--sans); font-size: 11.5px; color: var(--ink-3); display: block; margin-top: 3px; line-height: 1.5; letter-spacing: 0; }
+.verdict dd.ok { color: var(--blue-2); }
+.verdict dd.no { color: #A8331F; }
+
+/* ══ 히어로 수치 띠 ═══════════════════════════════════════ */
+.statstrip {
+  display: flex; flex-wrap: wrap; background: var(--card);
+  border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+  margin: 0 0 6px;
+}
+.statstrip > div { flex: 1 1 118px; padding: 10px 14px; border-right: 1px solid var(--line); }
+.statstrip > div:last-child { border-right: 0; }
+.statstrip b {
+  display: block; font-family: var(--mono); font-size: 19px;
+  letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.25;
+}
+.statstrip span { font-size: 11px; color: var(--ink-3); }
+.statstrip .neg b { color: #A8331F; }
+
+/* ══ 기능 벤토 그리드 ═════════════════════════════════════ */
+.bento { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 148px; gap: 11px; }
+.cell {
+  position: relative; overflow: hidden; min-width: 0;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 7px;
+  text-decoration: none; color: inherit;
+  transition: border-color .15s, transform .15s;
+}
+a.cell:hover { border-color: var(--blue); transform: translateY(-2px); }
+.cell .lab {
+  display: flex; align-items: center; gap: 6px; flex: none;
+  font-family: var(--mono); font-size: 9px; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.cell .lab em { font-style: normal; color: var(--blue); }
+.cell h3 { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: -.02em; line-height: 1.3; }
+.cell p { margin: 0; font-size: 11.5px; color: var(--ink-2); line-height: 1.5; max-width: none; }
+.cell .fill { flex: 1; min-height: 0; margin: 2px -14px -12px; position: relative; }
+.cell .fill canvas { display: block; width: 100%; height: 100%; }
+.cell .go2 {
+  margin-top: auto; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); flex: none;
+}
+a.cell:hover .go2 { color: var(--blue); }
+.w2 { grid-column: span 2; }
+.h2 { grid-row: span 2; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chips span {
+  font-family: var(--mono); font-size: 10px; padding: 3px 7px; border-radius: 5px;
+  background: var(--card-2); border: 1px solid var(--line); color: var(--ink-3);
+}
+.chips span.on { background: var(--wash); border-color: var(--blue); color: var(--blue-2); }
+
+.mini { display: flex; flex-direction: column; gap: 5px; }
+.mini .r { display: grid; grid-template-columns: 76px 1fr 32px; gap: 7px; align-items: center; }
+.mini .r em { font-style: normal; font-size: 10.5px; color: var(--ink-2); }
+.mini .r i { display: block; height: 8px; border-radius: 0 3px 3px 0; background: #2B5FE3; }
+.mini .r i.b { background: #A97406; }
+.mini .r span { font-family: var(--mono); font-size: 10px; color: var(--ink-3); text-align: right; }
+
+.decay { width: 100%; height: 100%; }
+.rc {
+  background: var(--card-2); border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 10px; font-size: 11px; line-height: 1.5;
+}
+.rc .t { font-weight: 700; font-size: 12px; color: var(--ink); margin-bottom: 2px; }
+.rc .m { font-family: var(--mono); font-size: 9.5px; color: var(--ink-3); }
+.rc .w { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--line); color: var(--ink-2); }
+.rc .w em { font-style: normal; color: var(--gold); font-weight: 700; }
+
+@media (max-width: 900px) {
+  .bento { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 540px) {
+  .bento { grid-template-columns: 1fr; grid-auto-rows: auto; }
+  .w2, .h2 { grid-column: auto; grid-row: auto; }
+  .cell .fill { height: 130px; }
+}
+
+/* ══ 챕터 ══════════════════════════════════════════════ */
+.chapter { padding: 30px 0; border-top: 1px solid var(--line); }
+.chapter > .k {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .15em;
+  text-transform: uppercase; color: var(--ink-3); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 9px;
+}
+.chapter > .k::before {
+  content: ""; width: 18px; height: 1px; background: var(--line-2);
+}
+h2 {
+  margin: 0 0 14px; font-size: clamp(20px, 2.6vw, 26px); font-weight: 800;
+  letter-spacing: -.025em; line-height: 1.35; text-wrap: balance; max-width: 24ch;
+}
+.chapter p { margin: 0 0 11px; color: var(--ink-2); max-width: 64ch; }
+.chapter p b { color: var(--ink); font-weight: 700; }
+.chapter p:last-child { margin-bottom: 0; }
+
+.loop {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 12px; margin: 20px 0 0;
+}
+.loop span {
+  padding: 7px 12px; border-radius: 7px; background: var(--card);
+  border: 1px solid var(--line); color: var(--ink-2);
+}
+.loop span.hot { border-color: var(--blue); color: var(--blue-2); background: var(--wash); }
+.loop i { color: var(--ink-3); font-style: normal; }
+
+/* 두 화면 카드 */
+.views { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+@media (max-width: 760px) { .views { grid-template-columns: 1fr; } }
+.view {
+  display: flex; flex-direction: column; text-decoration: none;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  overflow: hidden; transition: border-color .15s, transform .15s;
+}
+.view:hover { border-color: var(--blue); transform: translateY(-2px); }
+.view .thumb { height: 132px; border-bottom: 1px solid var(--line); }
+.view .thumb canvas { display: block; width: 100%; height: 100%; }
+.view .body { padding: 15px 16px 16px; }
+.view .tag {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--blue);
+}
+.view h3 { margin: 3px 0 6px; font-size: 17px; font-weight: 800; letter-spacing: -.02em; }
+.view p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.65; }
+.view .go { margin-top: 11px; font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
+.view:hover .go { color: var(--blue); }
+
+/* 표 */
+.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 6px; }
+.tbl th, .tbl td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+.tbl th {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 500;
+}
+.tbl td { color: var(--ink-2); }
+.tbl td b { color: var(--ink); font-weight: 700; }
+.tbl td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.tbl tr:last-child td { border-bottom: 0; }
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+
+.facts { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.facts > div { background: var(--card); display: flex; gap: 16px; padding: 11px 14px; font-size: 13.5px; }
+.facts dt { margin: 0; color: var(--ink-3); flex: none; width: 96px; font-size: 12.5px; }
+.facts dd { margin: 0; color: var(--ink-2); }
+.facts dd b { color: var(--ink); font-weight: 700; }
+code {
+  font-family: var(--mono); font-size: 12.5px; color: var(--blue-2);
+  background: var(--wash); padding: 1px 5px; border-radius: 4px;
+}
+
+.note {
+  background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--gold);
+  border-radius: 0 10px 10px 0; padding: 15px 17px; font-size: 13.5px; color: var(--ink-2);
+}
+.note b { color: var(--ink); font-weight: 700; }
+.note p { margin: 0 0 9px; max-width: none; }
+.note p:last-child { margin: 0; }
+
+.steps { counter-reset: s; list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 9px; }
+.steps li {
+  counter-increment: s; position: relative; padding: 12px 15px 12px 46px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  font-size: 13.5px; color: var(--ink-2);
+}
+.steps li::before {
+  content: counter(s); position: absolute; left: 15px; top: 12px;
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  width: 19px; height: 19px; border-radius: 5px;
+  background: var(--wash); color: var(--blue-2);
+  display: grid; place-items: center;
+}
+.steps li b { color: var(--ink); font-weight: 700; }
+
+footer {
+  border-top: 1px solid var(--line); padding: 22px 0 46px;
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-3);
+  display: flex; flex-wrap: wrap; gap: 8px 22px;
+}
+footer a { color: var(--ink-3); text-decoration: none; }
+footer a:hover { color: var(--blue); }
+
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 5px; }
+</style>
+</head>
+<body>
+
+<aside class="cg-nav">
+  <a class="cg-brand" href="./index.html">
+    <svg class="cg-mark" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M8.6 24.1 L13.4 20.7" stroke="#A97406" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+      <path d="M18.1 17.6 L22.9 13.4" stroke="#2B5FE3" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+      <circle cx="6.4" cy="25.6" r="3.3" fill="#A97406"/>
+      <circle cx="15.8" cy="19.1" r="2.4" fill="none" stroke="#A97406" stroke-width="1.8"/>
+      <circle cx="25.2" cy="11.6" r="6" fill="none" stroke="#2B5FE3" stroke-width="1.6"/>
+      <circle cx="25.2" cy="11.6" r="3.3" fill="#2B5FE3"/>
+    </svg>
+    <span class="cg-bn"><b>Asterism</b><i>연구자용 Second Brain</i></span>
+  </a>
+  <div class="cg-menu">
+    <a href="./index.html"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10.5V20h12v-9.5"/></svg><span>홈</span></a>
+    <a href="./onboard.html"><svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/><circle cx="12" cy="12" r="9"/></svg><span>온보딩</span><span class="cg-sub">INPUT</span></a>
+    <a href="./graph.html"><svg viewBox="0 0 24 24"><circle cx="6" cy="8" r="2.6"/><circle cx="18" cy="6.5" r="2.2"/><circle cx="15" cy="17.5" r="2.6"/><path d="M8.4 9.2l4.6 6.6M8 7.2l7.8-.5"/></svg><span>그래프 뷰</span><span class="cg-sub">ANALYST</span></a>
+    <a href="./safari.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="3"/><path d="M6.5 20v-3.2A5.5 5.5 0 0 1 12 11.3a5.5 5.5 0 0 1 5.5 5.5V20"/></svg><span>논문 사파리</span><span class="cg-sub">GAME</span></a>
+    <a href="./about.html" aria-current="page"><svg viewBox="0 0 24 24"><path d="M6 3.5h7.6L18 7.9V20.5H6z"/><path d="M13.4 3.7v4.3h4.4M9 12.6h6M9 16h4"/></svg><span>프로젝트 소개</span><span class="cg-sub">ABOUT</span></a>
+  </div>
+  <div class="cg-anchors">
+    <a href="#features">기능</a>
+    <a href="#how">과정</a>
+    <a href="#result">결과 읽는 법</a>
+    <a href="#eval">평가 방식</a>
+    <a href="#hub">허브 보정</a>
+    <a href="#verify">백테스트</a>
+    <a href="#source">데이터 원천</a>
+    <a href="#corpus">코퍼스</a>
+    <a href="#limits">한계</a>
+  </div>
+  <div class="cg-foot">
+    <a href="https://github.com/sangho24/asterism">GitHub 레포 ↗</a>
+    <span>프로토타입 · 2026-09</span>
+  </div>
+</aside>
+
+<main class="cg-shift">
+<div class="wrap">
+
+  <section class="hero" style="grid-template-columns:1fr;padding-bottom:6px">
+    <div class="htext">
+    <div class="eyebrow">About · 프로젝트 소개</div>
+    <h1>무엇을 계산하고, 무엇까지 확인했는가</h1>
+    <p class="lede" style="max-width:62ch">
+      추천이 만들어지는 네 단계와 추천 카드를 읽는 법, 그리고 백테스트로 잰 것과
+      <b>아직 재지 못한 것</b>을 한자리에 모았다. 화면부터 만져보고 싶으면
+      <a href="./index.html">홈</a>으로 돌아가면 된다.
+    </p>
+    </div>
+  </section>
+
+<section class="chapter" id="features" style="padding-top:8px">
+    <div class="k">기능</div>
+    <h2>지금 눌러볼 수 있는 것들</h2>
+
+    <div class="bento">
+      <a class="cell w2 h2" href="./graph.html">
+        <div class="lab"><em>◆</em> 그래프 뷰</div>
+        <h3>렌즈로 갈라 보는 인용 그래프</h3>
+        <p>내 것만 / 추천 포함 / 인용 이웃 1홉 / 토픽별 / 전체. 노드 크기가 점수다.</p>
+        <div class="go2">열기 →</div>
+        <div class="fill"><canvas id="bGraph"></canvas></div>
+      </a>
+
+      <div class="cell w2">
+        <div class="lab"><em>◆</em> 추천 · 왜</div>
+        <h3>근거는 경로다</h3>
+        <div class="rc">
+          <div class="t">DeepSeek-V3 Technical Report</div>
+          <div class="m">MoE · 2024 · arXiv:2412.19437 · score 2.5e-3</div>
+          <div class="w"><em>읽은 Mixtral of Experts</em> ↳ 이 논문을 인용한 <b>DeepSeek-V3</b></div>
+        </div>
+      </div>
+
+      <div class="cell">
+        <div class="lab"><em>◆</em> 랭킹 방법</div>
+        <h3>4종 즉시 전환</h3>
+        <div class="chips">
+          <span class="on">PPR</span><span>참고문헌 최빈</span><span>피인용수</span><span>최근성</span>
+        </div>
+      </div>
+
+      <div class="cell">
+        <div class="lab"><em>◆</em> 허브 보정</div>
+        <h3>유명함을 누른다</h3>
+        <div class="chips" style="margin-bottom:6px">
+          <span>없음</span><span>deg^0.5</span><span class="on">deg^0.8</span>
+        </div>
+        <p style="font-size:11px">지수 하나로 상위 10개가 통째로 바뀐다.</p>
+      </div>
+
+      <a class="cell w2 h2" href="./safari.html">
+        <div class="lab"><em>◆</em> 논문 사파리</div>
+        <h3>안개 속에서 추천만 빛난다</h3>
+        <p>걸어다니다 논문에 닿으면 판정한다. 캐릭터 4인 · 조합별 일치율 집계.</p>
+        <div class="go2">시작 →</div>
+        <div class="fill"><canvas id="bSafari"></canvas></div>
+      </a>
+
+      <div class="cell">
+        <div class="lab"><em>◆</em> 시드 반감기</div>
+        <h3>오래된 관심의 무게</h3>
+        <div class="fill" style="margin:4px -6px 0">
+          <svg class="decay" viewBox="0 0 120 54" preserveAspectRatio="none" aria-label="반감기 감쇠 곡선">
+            <path d="M4 6 C 34 6, 40 44, 116 49" fill="none" stroke="#2B5FE3" stroke-width="2" stroke-linecap="round"/>
+            <line x1="4" y1="49" x2="116" y2="49" stroke="#D2CABA" stroke-width="1"/>
+            <circle cx="4" cy="6" r="3" fill="#2B5FE3"/>
+            <circle cx="116" cy="49" r="3" fill="#A97406"/>
+          </svg>
+        </div>
+        <p style="font-size:10.5px;color:var(--ink-3)">30일 / 90일 / 감쇠 없음</p>
+      </div>
+
+      <div class="cell">
+        <div class="lab"><em>◆</em> 주간 리포트</div>
+        <h3>Discord 로 온다</h3>
+        <p style="font-size:11px">이번 주 읽은 것, 그래프가 자란 부분, 다음 주 추천 5개와 각각의 근거 한 줄.</p>
+      </div>
+
+      <div class="cell w2">
+        <div class="lab"><em>◆</em> 백테스트</div>
+        <h3>실제로 재봤다 · 28폴드</h3>
+        <div class="mini">
+          <div class="r"><em>PPR deg^0.8</em><i style="width:87%"></i><span>0.158</span></div>
+          <div class="r"><em>참고문헌 최빈</em><i class="b" style="width:55%"></i><span>0.099</span></div>
+          <div class="r"><em>피인용수 순</em><i class="b" style="width:19%"></i><span>0.034</span></div>
+        </div>
+        <p style="font-size:10.5px;color:var(--ink-3);margin-top:auto">손 그래프 28폴드 MRR · 무작위 기대치 0.067 아래가 피인용수 순이다</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="how">
+    <div class="k">과정</div>
+    <h2>추천이 만들어지는 네 단계</h2>
+    <p style="margin-bottom:26px">
+      오른쪽 화면은 설명용 그림이 아니라 <b>실제로 도는 계산을 그대로 그린 것</b>이다.
+      단계를 따라 내려가면 그림이 같이 바뀐다.
+    </p>
+
+    <div class="how">
+      <div class="track" id="howTrack">
+        <article class="step" data-step="0" data-on="1">
+          <span class="n">1</span>
+          <h3>읽은 것이 시드가 된다</h3>
+          <p>논문을 읽거나 좋아요를 누르면 그래프의 그 노드에 <b>출발점 표시</b>가 붙는다.
+             스킵도 남는다. 다만 음수로 남아서 그 방향을 밀어낸다.
+             언제 읽었는지도 같이 기록되고, 오래된 것일수록 가중치가 줄어든다.</p>
+          <div class="f">좋아요 <b>+2</b> · 읽음 <b>+1</b> · 스킵 <b>-1</b> &nbsp;×&nbsp; 0.5<sup>(경과일수/반감기)</sup></div>
+        </article>
+
+        <article class="step" data-step="1">
+          <span class="n">2</span>
+          <h3>점수가 인용을 타고 퍼진다</h3>
+          <p>시드에 놓인 점수가 인용 관계를 따라 이웃으로 흘러간다. 흘러간 점수는 다시 그 이웃으로 퍼지고,
+             매번 일부는 시드로 되돌아온다. 이걸 반복하면 <b>내가 읽은 것들 근처가 두꺼워진다.</b>
+             여러 시드에서 동시에 도달하는 논문일수록 점수가 높게 쌓인다.</p>
+          <div class="f">Personalized PageRank · <b>p = 0.15·s + 0.85·W·p</b> · 45회 반복</div>
+        </article>
+
+        <article class="step" data-step="2">
+          <span class="n">3</span>
+          <h3>허브를 눌러 순위를 잡는다</h3>
+          <p>그냥 두면 Attention·BERT 처럼 <b>모두가 인용하는 논문</b>이 상위를 차지한다.
+             이미 아는 것들이라 추천으로서 값이 없다. 그래서 인용 관계가 많은 노드일수록 점수를 나눠 눌러준다.
+             누르는 세기에 따라 상위 10개가 통째로 바뀐다.</p>
+          <div class="f">score = p ÷ degree<sup>보정지수</sup> · 지수 <b>0 / 0.5 / 0.8</b> 중 선택</div>
+        </article>
+
+        <article class="step" data-step="3">
+          <span class="n">4</span>
+          <h3>경로가 곧 이유가 된다</h3>
+          <p>왜 이 논문인지는 LLM 이 지어내지 않는다. <b>내가 읽은 논문에서 그 논문까지 실제로 이어지는
+             가장 짧은 길</b>을 찾아 문장으로 편다. 길이 없으면 추천 목록에 올리지 않는다.
+             근거를 만들 수 없는 추천은 하지 않는다는 뜻이다.</p>
+          <div class="f">무방향 BFS 최단 경로 · 최대 <b>4홉</b> · 경로 없으면 제외</div>
+        </article>
+      </div>
+
+      <div class="pin">
+        <div class="screen">
+          <div class="bezel">
+            <i></i><i></i><i></i>
+            <span>계산 과정</span>
+            <em id="howPhase">시드</em>
+          </div>
+          <canvas id="howCv"></canvas>
+        </div>
+        <div class="cap"><i>●</i> 실제 계산을 축약해 그린 것이다. 노드 9개짜리 미니 그래프를 쓴다.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="result">
+    <div class="k">결과</div>
+    <h2>추천 카드를 읽는 법</h2>
+    <p style="margin-bottom:24px">
+      추천 하나는 이렇게 생겼다. 숫자를 눌러 각 부분이 무엇을 뜻하는지 확인해라.
+    </p>
+
+    <div class="read">
+      <div class="reccard">
+        <div class="row1">
+          <span class="rk"><span class="mk">1</span>03</span>
+          <h4>DeepSeek-V3 Technical Report</h4>
+        </div>
+        <div class="meta">
+          <span class="mk">2</span><span>MoE</span><span>2024</span>
+          <span>arXiv:2412.19437</span><span>피인용 1.4k</span><span>score 2.5e-3</span>
+        </div>
+        <div class="why">
+          <span class="lab"><span class="mk">3</span>왜 · 1홉</span>
+          <em>읽은 Mixtral of Experts</em>
+          <span class="conn">↳ 이 논문을 인용한</span>
+          <strong>DeepSeek-V3 Technical Report</strong>
+        </div>
+        <div class="acts">
+          <span class="mk">4</span><span>읽음</span><span>좋아요</span><span>스킵</span><span>나중에</span>
+        </div>
+      </div>
+
+      <ul class="keyed">
+        <li><span class="mk">1</span><span><b>순위</b>는 절대적인 좋음이 아니라 <b>내 시드 기준 상대 순위</b>다.
+          같은 논문이라도 내가 무엇을 읽었느냐에 따라 3위도 되고 40위도 된다.</span></li>
+        <li><span class="mk">2</span><span><b>피인용수와 score 는 다른 축이다.</b> 피인용 1.4k 는 세상의 평가고,
+          score 는 내 독서 이력에서 계산된 값이다. 둘이 어긋날수록 개인화가 실제로 작동하고 있다는 뜻이다.</span></li>
+        <li><span class="mk">3</span><span><b>여기가 근거다.</b> "읽은 Mixtral 을 인용한 DeepSeek-V3" 는
+          내가 검증할 수 있는 사실이지 모델의 의견이 아니다. 홉 수가 클수록 연결이 멀다는 뜻이니
+          3~4홉짜리 근거는 의심하고 봐야 한다.</span></li>
+        <li><span class="mk">4</span><span>반응하면 그 논문이 <b>다음 계산의 시드로 들어간다.</b>
+          스킵은 무시가 아니라 음의 신호로 남아 그 방향을 밀어낸다. 목록은 즉시 다시 정렬된다.</span></li>
+      </ul>
+    </div>
+
+    <div class="note" style="margin-top:26px">
+      <p><b>순위를 믿기 전에 볼 것이 하나 있다.</b> 좌측 레일의 "피인용수 순위와 겹침"이
+         7/10 이상이면, 그 추천은 사실상 <b>유명한 논문 목록</b>과 같은 것을 내놓고 있다는 뜻이다.
+         그럴 때는 개인화가 작동하지 않는 것이므로 허브 보정을 올리거나 시드를 더 넣어야 한다.</p>
+      <p>반대로 겹침이 낮다고 해서 그 순위가 <b>더 맞다는 보장은 없다.</b>
+         다르다는 것과 옳다는 것은 별개다. 그건 백테스트에서만 갈린다.</p>
+    </div>
+  </section>
+
+  <section class="chapter" id="eval">
+    <div class="k">평가</div>
+    <h2>게임을 하는 행위가 곧 hit rate 측정이다</h2>
+    <p>
+      논문에 닿아 읽을지 말지 고르면, <b>그래프가 그것을 몇 위로 두고 있었는지</b> 공개된다.
+      내 판단과 추천 순위가 겹치는 비율이 곧 hit rate 다.
+      주 단위로 기다리면 데이터 포인트가 1주에 1개지만, 조우 한 번에 판정 하나씩 쌓인다.
+    </p>
+    <div class="scroll">
+      <table class="tbl">
+        <thead><tr><th>내 선택</th><th>그래프 순위</th><th>판정</th><th>뜻</th></tr></thead>
+        <tbody>
+          <tr><td>읽는다</td><td class="n">상위 8위 안</td><td><b>일치</b></td><td>추천이 맞았다</td></tr>
+          <tr><td>읽는다</td><td class="n">순위 밖</td><td><b>불일치</b></td><td>추천이 놓쳤다</td></tr>
+          <tr><td>스킵</td><td class="n">상위 8위 안</td><td><b>불일치</b></td><td>추천이 헛다리를 짚었다</td></tr>
+          <tr><td>스킵</td><td class="n">순위 밖</td><td><b>일치</b></td><td>추천도 관심 없었다</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="chapter" id="hub">
+    <div class="k">관찰된 결과</div>
+    <h2>정규화 지수 하나가 순위를 통째로 뒤집는다</h2>
+    <p>
+      같은 시드(MoE · 효율적 서빙 관심)에서 허브 보정 강도만 바꾼 결과다.
+      보정 없는 PPR 은 허브로 수렴해 상위가 <b>이미 아는 유명 논문</b>으로 찬다.
+    </p>
+    <div class="scroll">
+      <table class="tbl">
+        <thead><tr><th>방법</th><th>상위 3개</th><th>피인용 top10 겹침</th></tr></thead>
+        <tbody>
+          <tr><td>피인용수 (베이스라인)</td><td>ResNet, Adam, BERT</td><td class="n">10/10</td></tr>
+          <tr><td>PPR 보정 없음</td><td><b>GPT-3, T5</b>, DeepSeek-V3</td><td class="n">4/10</td></tr>
+          <tr><td>PPR + <code>deg^0.5</code></td><td>DeepSeek-V3, GShard, Medusa</td><td class="n">2/10</td></tr>
+          <tr><td>PPR + <code>deg^0.8</code></td><td><b>Mixtral, Medusa</b>, DeepSeek-V3</td><td class="n">0/10</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:16px">
+      즉 진짜 쟁점은 "PPR 이 되느냐"가 아니라 <b>백테스트로 정해야 할 자유 파라미터가 있다</b>는 것이다.
+      부작용도 관찰됐다. 허브 보정은 degree-1 노드를 과보상해서,
+      좋아요한 논문 하나에만 붙은 모델 노드가 1위로 튀어오른다.
+    </p>
+  </section>
+
+<section class="chapter" id="verify">
+    <div class="k">검증</div>
+    <h2>PPR 은 베이스라인을 이겼는가</h2>
+    <p>
+      독서 이력을 읽은 시각 순으로 세우고, <b>앞의 것들만 시드로 주고 바로 다음에 읽은 한 편을 맞히게 했다.</b>
+      이걸 시작점을 옮겨가며 28번 반복한다(롤링 오리진). 각 시점에서
+      그때까지 나오지 않은 논문은 그래프에서 지운다(시간 검열).
+      후보 풀은 모든 방법에 동일하고 중앙값 63.5개다.
+    </p>
+
+    <figure class="chart">
+      <div class="legend">
+        <span><i class="ppr"></i>PPR</span>
+        <span><i class="base"></i>베이스라인</span>
+        <span><i class="rand"></i>무작위로 섞었을 때 기대치</span>
+      </div>
+      <div class="plot">
+        <div class="ref"><b>0.067</b></div>
+        <div class="row best" tabindex="0" data-tip="R@10 0.393 · 순위 중앙 12위">
+          <span class="lb">PPR deg^0.8 · 90일</span>
+          <span class="tr"><i style="width:87.8%"></i></span><span class="v">0.158</span></div>
+        <div class="row" tabindex="0" data-tip="R@10 0.464 (최고) · 순위 중앙 10위">
+          <span class="lb">PPR deg^0.8 · 30일</span>
+          <span class="tr"><i style="width:80.6%"></i></span><span class="v">0.145</span></div>
+        <div class="row" tabindex="0" data-tip="R@10 0.393 · 순위 중앙 12위">
+          <span class="lb">PPR deg^0.5 · 30일</span>
+          <span class="tr"><i style="width:78.3%"></i></span><span class="v">0.141</span></div>
+        <div class="row" tabindex="0" data-tip="R@10 0.286 · 베이스라인 중 최고">
+          <span class="lb">참고문헌 최빈</span>
+          <span class="tr"><i class="base" style="width:55.0%"></i></span><span class="v">0.099</span></div>
+        <div class="row" tabindex="0" data-tip="R@10 0.143 · 순위 중앙 29위">
+          <span class="lb">최근성 순</span>
+          <span class="tr"><i class="base" style="width:48.9%"></i></span><span class="v">0.088</span></div>
+        <div class="row" tabindex="0" data-tip="R@10 0.071 · 무작위보다 나쁘다">
+          <span class="lb">피인용수 순</span>
+          <span class="tr"><i class="base" style="width:18.9%"></i></span><span class="v">0.034</span></div>
+        <div class="axis"><span>0</span><span>0.05</span><span>0.10</span><span>0.15</span></div>
+      </div>
+      <figcaption style="font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:10px">
+        MRR · 손으로 만든 인용 그래프 · 28폴드 · 노드 89개
+      </figcaption>
+    </figure>
+
+    <dl class="verdict">
+      <div><dt>평균으로는</dt><dd class="ok">1.6배<small>최고 베이스라인 대비. 무작위 대비로는 2.4배</small></dd></div>
+      <div><dt>폴드별 승패로는</dt><dd class="no">12승 13패<small>폴드마다 최선 베이스라인과 붙이면 오히려 진다. 28폴드로는 이 크기의 차이를 판정할 수 없다</small></dd></div>
+      <div><dt>확실한 것</dt><dd class="ok">0.034 &lt; 0.067<small>피인용수 순 정렬은 무작위로 섞는 것보다 나쁘다. "유명한 것부터"는 반생산적이다</small></dd></div>
+    </dl>
+
+    <p style="margin-top:20px">
+      <b>그래서 결론은 "PPR 이 이겼다"가 아니다.</b> 평균은 앞서지만 폴드별로 보면 갈린다.
+      다만 두 가지는 분명해졌다. 허브 보정은 반감기보다 훨씬 크게 움직이고(지수를 0에서 0.8로 올리면 +0.046,
+      반감기는 ±0.001), <b>피인용수 기반 추천은 안 하느니만 못하다.</b>
+      스킵에 준 -1 가중치도 근거가 없었다. 0으로 두는 편이 오히려 낫다(0.164 대 0.158).
+      허브 보정 3단과 반감기 3단을 엇갈려 만든 <b>9개 조합</b>을 같은 폴드 위에서 격자로 비교한 결과다.
+    </p>
+    <p style="margin-top:14px">
+      그리고 이 수치는 전부 <b>손으로 만든 그래프(노드 89 · 엣지 274)</b> 위에서 나온 것이다.
+      같은 이력·같은 코드로 그래프만 Semantic Scholar 것으로 바꾸면 결과가 또 달라진다. 바로 아래에 있다.
+    </p>
+  </section>
+
+  <section class="chapter" id="source">
+    <div class="k">데이터 원천</div>
+    <h2>OpenAlex 는 못 쓰고, Semantic Scholar 는 쓸 수 있다</h2>
+    <p>
+      프로토타입은 손으로 만든 인용 그래프를 쓴다. 실제 서비스로 가려면 인용 데이터를 어딘가에서 받아와야 한다.
+      같은 78편을 두 원천에서 <b>같은 절차(커버리지 → 참고문헌 밀도 → 도달률)</b>로 쟀다.
+    </p>
+    <div class="scroll">
+      <table class="tbl">
+        <thead><tr><th>측정</th><th>OpenAlex</th><th>Semantic Scholar</th><th>뜻</th></tr></thead>
+        <tbody>
+          <tr><td>논문 해소 (제목·연도까지 맞는 것)</td><td class="n">67/78 · 85.9%</td><td class="n"><b>75/78 · 96.2%</b></td><td>둘 다 id 는 찾는다. 제목이 딴 논문인 레코드는 OpenAlex 6편, Semantic Scholar 0편</td></tr>
+          <tr><td>참고문헌이 있는 논문</td><td class="n">42.1% · 중앙값 0</td><td class="n"><b>91.0%</b> · 중앙값 49.5</td><td>절반이 비어 있느냐, 거의 다 있느냐</td></tr>
+          <tr><td>2022년 이후 참고문헌 보유율</td><td class="n"><b>2.4%</b></td><td class="n"><b>88.4%</b></td><td>OpenAlex 는 2023년 21편·2024년 10편이 전부 0건. Semantic Scholar 에는 절벽이 없다</td></tr>
+          <tr><td>독서 이력 38건 중 그래프에 붙는 것</td><td class="n">9</td><td class="n"><b>33</b></td><td>읽은 MoE·서빙 논문이 고립점이냐 아니냐</td></tr>
+          <tr><td>도달률 (정답이 시드 3홉 안)</td><td class="n"><b>21.4%</b></td><td class="n"><b>85.7%</b></td><td>랭킹 알고리즘의 천장. 손 그래프는 89.3% 였다</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:16px">
+      Semantic Scholar 는 손 그래프 엣지 266개 중 192개(72%)를 실제로 확인해 주고, 손 그래프에 없는 엣지 293개를 더 갖고 있다.
+      남은 구멍은 <b>대형 테크 리포트 5편(GPT-4, Llama 3, DeepSeek-V3, Mamba, BIG-bench)의 참고문헌이 0건</b>이라는 것과,
+      키 없이는 429 가 잦아 78편에 약 20분이 걸린다는 것이다.
+    </p>
+    <div class="note" style="margin-top:18px">
+      <p><b>그런데 실제 그래프 위에서는 PPR 의 우위가 사라진다.</b>
+         같은 이력, 같은 코드로 그래프만 Semantic Scholar 것으로 바꾸면 PPR 최고 조합의 MRR 이 0.158 에서 <b>0.087</b> 로 떨어지고,
+         최근성 베이스라인(0.107)에 진다. 폴드별로는 15승 10패가 <b>10승 14패</b>로 뒤집힌다.</p>
+      <p>허브 보정 방향과 "피인용수 순은 무작위보다 나쁘다"는 살아남았다. "PPR 이 낫다"는 죽었다.
+         원인이 그래프 밀도(평균 차수 6.2 → 12.4)인지, 일 단위 날짜를 얻은 최근성의 이득인지,
+         손 그래프와 mock 이력이 같이 설계된 순환 논증이 풀린 것인지는 이 데이터로 가릴 수 없다.</p>
+    </div>
+    <div class="note" style="margin-top:18px">
+      <p><b>손 그래프 도달률 89.3% 는 믿으면 안 된다.</b>
+         mock 독서 이력을 그래프 노드 목록에서 골라 만들어서 "읽을 논문이 수집 범위 안에 있는가"가 설계상 항상 참이다.
+         Semantic Scholar 의 85.7% 도 같은 이력 위에서 잰 것이라 이 편향을 물려받는다. 실제 상한은 아직 모른다.</p>
+      <p>메타데이터는 어느 쪽이든 제목·날짜를 arXiv 원본으로 삼아야 한다. OpenAlex 는 arXiv DOI 가 맞는데 제목이 딴 논문인 레코드가 6편,
+         Semantic Scholar 는 학술지 게재판 제목으로 바뀐 것(DeepSeek-R1)이 있었다.</p>
+    </div>
+  </section>
+
+  <section class="chapter" id="corpus">
+    <div class="k">지금 들어있는 것</div>
+    <h2>실제 논문과 실제 인용 관계</h2>
+    <dl class="facts">
+      <div><dt>코퍼스</dt><dd>손 코퍼스 논문 <b>78편</b> · 모델 <b>8개</b> · 아티클 <b>3개</b> (노드 89, 엣지 274, 백테스트 원본). 화면은 이것을 Semantic Scholar 로 1홉 확장한 <b>3,031 노드 · 42,238 엣지</b> 위에서 돌고, 온보딩에서 고른 범위로 거른다</dd></div>
+      <div><dt>프로필</dt><dd>온보딩의 범위·관심, 사파리의 판정, 그래프 뷰의 반응이 <b>같은 프로필 하나</b>(브라우저 localStorage)에 쌓인다. 페이지를 오가도 이어진다</dd></div>
+      <div><dt>독서 이력</dt><dd><b>읽은 시각이 붙은 mock 데이터.</b> 5개월치 <code>data/reading-history.json</code>. 최근성 감쇠가 인덱스가 아니라 경과 일수로 돈다</dd></div>
+      <div><dt>추천</dt><dd>Personalized PageRank (α = 0.85, 45회 멱반복) + degree 정규화. 베이스라인 3종을 나란히 계산</dd></div>
+      <div><dt>근거</dt><dd>시드에서 후보까지 무방향 BFS 최단 경로. <b>경로가 없으면 추천하지 않는다</b></dd></div>
+      <div><dt>스택</dt><dd>외부 라이브러리 0개. 포스 레이아웃·PPR·캐릭터 스프라이트·렌더링 전부 Canvas 2D 자체 구현. <b>빌드 단계가 없다</b></dd></div>
+    </dl>
+  </section>
+
+  <section class="chapter" id="limits">
+    <div class="k">한계</div>
+    <h2>이 프로토타입이 답하지 못하는 것</h2>
+    <div class="note">
+      <p><b>읽음 이력은 mock 이다.</b> 실제 독서 기록이 아니다.</p>
+      <p><b>인용 그래프가 오늘 시점 스냅샷이라 시점 누수가 있다.</b>
+         6월에 읽은 것으로 8월 논문을 맞히는데, 그 논문이 도달 가능한 이유가
+         "9월에 나온 논문들이 인용해서"일 수 있다.</p>
+      <p>따라서 두 화면은 <b>"PPR 이 다른 답을 내는가"</b>까지만 답한다.
+         <b>"그 답이 더 맞는가"</b>는 별개 문제다.</p>
+    </div>
+    <p style="margin-top:18px">백테스트는 돌렸다. 그래도 남는 구멍이 셋이다.</p>
+    <ol class="steps">
+      <li><b>시점 누수는 아직 못 쟀다.</b> mock 이력이 2026년이고 논문은 전부 2025년 이하라,
+          검열이 매 폴드에서 노드를 0개 제거한다. 검열 코드는 동작하지만
+          <b>실제 날짜가 붙은 독서 기록이 없으면 누수의 크기를 알 수 없다.</b></li>
+      <li><b>28폴드로는 판정이 안 된다.</b> 평균 차이는 있는데 폴드별 승패가 12승 13패로 뒤집힌다.
+          독서 이력이 100건쯤 쌓여야 이 크기의 차이를 지탱한다</li>
+      <li><b>실제 그래프에서 PPR 이 이긴다는 근거가 없다.</b> 원천은 Semantic Scholar 로 확보됐지만,
+          그 그래프 위에서는 PPR 이 최근성 베이스라인에 진다. 손 그래프로 정한 파라미터도
+          실제 그래프에서 다시 정해야 한다. 다음 병목은 랭킹이 아니라 <b>실제 독서 이력</b>이다</li>
+    </ol>
+    <p style="margin-top:16px;font-size:13px;color:var(--ink-3)">
+      백테스트 코드와 원본 수치는 레포의 <code>backtest/</code> 에 있다.
+      재현하려면 <code>node backtest/run.mjs</code>.</p>
+  </section>
+
+  <section class="chapter" id="next">
+    <div class="k">다음</div>
+    <h2>직접 눌러보는 편이 빠르다</h2>
+    <p>설명을 다 읽지 않아도 된다. 세 화면은 프로필 하나를 같이 쓰고, 아무 데서나 시작해도 이어진다.</p>
+    <div class="cta" style="margin-top:18px">
+      <a class="prim" href="./safari.html">사파리 시작하기 →</a>
+      <a class="sec" href="./onboard.html">온보딩부터 열기</a>
+      <a class="sec" href="./graph.html">그래프 뷰 열기</a>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 sangho24 · All rights reserved</span>
+    <a href="https://github.com/sangho24/asterism">GitHub</a>
+    <a href="https://api.semanticscholar.org/api-docs/">Semantic Scholar API</a>
+    <a href="https://docs.openalex.org">OpenAlex (CC0)</a>
+    <a href="https://info.arxiv.org/help/api">arXiv API</a>
+  </footer>
+
+</div>
+</main>
+
+<script src="./assets/sprites.js"></script>
+<script src="./assets/preview-data.js"></script>
+<script>
+"use strict";
+/* 움직임 최소화 설정을 존중한다. 아래 두 시연이 함께 쓴다 */
+const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const clamp01 = v => Math.max(0, Math.min(1, v));
+
+/* ══════════════════════════════════════════════════════════
+   "추천이 만들어지는 과정" 4단계 시연
+   설명용 그림이 아니라 노드 9개짜리 미니 그래프에서 실제로
+   PPR 을 돌린 값을 그린다. 숫자를 지어내지 않는다.
+   ══════════════════════════════════════════════════════════ */
+const HN = [
+  { id:"flash",   x: 78, y: 95,  t:"FlashAttention", seed:"liked", w:2, ago:"18일 전" },
+  { id:"switch",  x: 78, y: 215, t:"Switch",         seed:"read",  w:1, ago:"63일 전" },
+  { id:"mixtral", x: 78, y: 335, t:"Mixtral",        seed:"liked", w:2, ago:"9일 전"  },
+  { id:"gqa",     x:222, y: 58,  t:"GQA" },
+  { id:"medusa",  x:222, y:150,  t:"Medusa" },
+  { id:"gshard",  x:222, y:242,  t:"GShard" },
+  { id:"dsv3",    x:222, y:334,  t:"DeepSeek-V3" },
+  { id:"expert",  x:352, y:300,  t:"Expert Choice" },
+  { id:"gpt3",    x:400, y:180,  t:"GPT-3" },
+  { id:"t5",      x:512, y: 86,  t:"T5" },
+  { id:"bert",    x:512, y:272,  t:"BERT" }
+];
+const HE = [["flash","gqa"],["flash","medusa"],["flash","gshard"],
+            ["switch","gshard"],["switch","dsv3"],
+            ["mixtral","dsv3"],["mixtral","gshard"],["mixtral","expert"],
+            ["gqa","gpt3"],["gshard","gpt3"],["dsv3","gpt3"],
+            ["medusa","gpt3"],["expert","gpt3"],
+            ["gqa","medusa"],["dsv3","expert"],
+            ["t5","gpt3"],["t5","gqa"],["bert","gpt3"],["bert","gshard"]];
+const HIX = Object.fromEntries(HN.map(n => [n.id, n]));
+
+/* 미니 PPR: 아래 순위표에 쓰이는 값은 전부 여기서 나온다 */
+const HADJ = {}; HN.forEach(n => HADJ[n.id] = []);
+HE.forEach(([a, b]) => { HADJ[a].push(b); HADJ[b].push(a); });
+
+const HP = (() => {
+  const s = {}; let norm = 0;
+  HN.filter(n => n.seed).forEach(n => { s[n.id] = n.w; norm += n.w; });
+  for (const k in s) s[k] /= norm;
+  let p = Object.assign({}, s);
+  for (let i = 0; i < 40; i++) {
+    const nx = {};
+    for (const id in p) {
+      const nb = HADJ[id]; if (!nb.length) continue;
+      const sh = (p[id] * 0.85) / nb.length;
+      for (const m of nb) nx[m] = (nx[m] || 0) + sh;
+    }
+    for (const id in s) nx[id] = (nx[id] || 0) + 0.15 * s[id];
+    p = nx;
+  }
+  return p;
+})();
+const HMAX = Math.max(...HN.filter(n => !n.seed).map(n => HP[n.id] || 0));
+const rankBy = fn => HN.filter(n => !n.seed)
+  .map(n => ({ n, v: fn(n) })).sort((a, b) => b.v - a.v);
+const RANK_RAW = rankBy(n => HP[n.id] || 0);
+const RANK_FIX = rankBy(n => (HP[n.id] || 0) / Math.pow(HADJ[n.id].length || 1, 0.8));
+
+const howCv = document.getElementById("howCv"), hx = howCv.getContext("2d");
+let HW = 0, HH = 0, HK = 1, howStep = 0, howT0 = performance.now();
+const PHASE_NAME = ["시드", "확산", "보정", "근거"];
+
+function sizeHow(){
+  const r = howCv.getBoundingClientRect();
+  const d = Math.min(devicePixelRatio || 1, 2);
+  HW = Math.max(r.width, 300); HH = Math.max(r.height, 220);
+  howCv.width = HW * d; howCv.height = HH * d;
+  hx.setTransform(d, 0, 0, d, 0, 0);
+  HK = HW / 560;
+}
+const hxx = v => v * HK, hyy = v => v * (HH / 420);
+const F = (w, s, fam) => `${w} ${Math.max(8, s * HK)}px ${fam || '"IBM Plex Mono", monospace'}`;
+
+function hEdges(alpha, hot){
+  hx.lineWidth = 1.2;
+  for (const [a, b] of HE) {
+    const isHot = hot && ((hot[0] === a && hot[1] === b) || (hot[0] === b && hot[1] === a));
+    hx.globalAlpha = isHot ? 1 : alpha;
+    hx.strokeStyle = isHot ? "#35E0C2" : "#263353";
+    hx.lineWidth = isHot ? 2.4 : 1.2;
+    hx.beginPath();
+    hx.moveTo(hxx(HIX[a].x), hyy(HIX[a].y));
+    hx.lineTo(hxx(HIX[b].x), hyy(HIX[b].y));
+    hx.stroke();
+  }
+  hx.globalAlpha = 1;
+}
+
+function hNode(n, opts){
+  const X = hxx(n.x), Y = hyy(n.y), r = (n.seed ? 13 : 11) * HK;
+  if (opts.halo > 0) {
+    const g = hx.createRadialGradient(X, Y, r * .5, X, Y, r + opts.halo * 26 * HK);
+    g.addColorStop(0, opts.haloColor || "rgba(91,141,239,.45)");
+    g.addColorStop(1, "rgba(91,141,239,0)");
+    hx.fillStyle = g;
+    hx.beginPath(); hx.arc(X, Y, r + opts.halo * 26 * HK, 0, 6.2832); hx.fill();
+  }
+  hx.globalAlpha = opts.alpha === undefined ? 1 : opts.alpha;
+  hx.beginPath(); hx.arc(X, Y, r * (opts.scale || 1), 0, 6.2832);
+  hx.fillStyle = opts.fill; hx.fill();
+  if (opts.ring) { hx.lineWidth = 2 * HK; hx.strokeStyle = opts.ring; hx.stroke(); }
+  hx.globalAlpha = 1;
+  if (opts.label !== false) {
+    hx.font = F(500, 10.5); hx.textAlign = "center"; hx.textBaseline = "top";
+    hx.fillStyle = opts.labelColor || "#98A5C4";
+    hx.fillText(n.t, X, Y + r + 5 * HK);
+  }
+}
+
+function hBadge(x, y, text, color){
+  hx.font = F(500, 9.5);
+  const w = hx.measureText(text).width + 10 * HK, h = 15 * HK;
+  hx.fillStyle = "rgba(10,14,28,.9)";
+  hx.fillRect(x - w / 2, y, w, h);
+  hx.strokeStyle = color; hx.lineWidth = 1; hx.strokeRect(x - w / 2, y, w, h);
+  hx.fillStyle = color; hx.textAlign = "center"; hx.textBaseline = "middle";
+  hx.fillText(text, x, y + h / 2 + .5);
+  hx.textBaseline = "top";
+}
+
+/* ── 1단계: 시드가 놓인다 ─────────────────────────────── */
+function stepSeed(t){
+  hEdges(.45);
+  const seeds = HN.filter(n => n.seed);
+  seeds.forEach((n, i) => {
+    const on = RM ? 1 : clamp01((t - 350 - i * 750) / 500);
+    hNode(n, {
+      fill: on ? "#F0B429" : "#39415E", ring: on ? "rgba(240,180,41,.35)" : null,
+      halo: on * .5, haloColor: "rgba(240,180,41,.4)",
+      labelColor: on ? "#F0B429" : "#5A6B93"
+    });
+    if (on > .8) {
+      const w = n.seed === "liked" ? "좋아요 +2" : "읽음 +1";
+      hBadge(hxx(n.x), hyy(n.y) - 34 * HK, `${w} · ${n.ago}`, "#F0B429");
+    }
+  });
+  HN.filter(n => !n.seed).forEach(n =>
+    hNode(n, { fill: "#39415E", halo: 0, alpha: .55, labelColor: "#5A6B93" }));
+}
+
+/* ── 2단계: 점수가 인용을 타고 퍼진다 ─────────────────── */
+function stepSpread(t){
+  hEdges(.5);
+  const grow = RM ? 1 : clamp01((t - 300) / 2600);
+  if (!RM) {                                   /* 엣지를 타고 흐르는 점 */
+    for (const [a, b] of HE) {
+      const A = HIX[a], B = HIX[b];
+      if (!A.seed && !B.seed) continue;
+      const from = A.seed ? A : B, to = A.seed ? B : A;
+      const u = ((t / 1100) % 1);
+      const X = hxx(from.x + (to.x - from.x) * u), Y = hyy(from.y + (to.y - from.y) * u);
+      hx.beginPath(); hx.arc(X, Y, 3 * HK, 0, 6.2832);
+      hx.fillStyle = "rgba(91,141,239,.9)"; hx.fill();
+    }
+  }
+  HN.forEach(n => {
+    if (n.seed) return hNode(n, { fill: "#F0B429", halo: .35, haloColor: "rgba(240,180,41,.35)", labelColor: "#F0B429" });
+    const v = ((HP[n.id] || 0) / HMAX) * grow;
+    hNode(n, { fill: v > .05 ? "#5B8DEF" : "#39415E", halo: v, scale: .85 + v * .45,
+               labelColor: v > .3 ? "#B9CCF6" : "#5A6B93" });
+  });
+  hx.font = F(400, 10.5); hx.textAlign = "left"; hx.textBaseline = "top";
+  hx.fillStyle = "#616F92";
+  hx.fillText("원의 크기 = 시드에서 흘러온 점수", hxx(16), hyy(392));
+}
+
+/* ── 3단계: 허브를 눌러 순위를 잡는다 ─────────────────── */
+function stepFix(t){
+  const reveal = RM ? 1 : clamp01((t - 500) / 1400);
+  const colW = hxx(220), left = hxx(30), right = hxx(300), top = hyy(64), rowH = hyy(52);
+
+  hx.textAlign = "left"; hx.textBaseline = "middle";
+  hx.font = F(500, 11);
+  hx.fillStyle = "#E0894A"; hx.fillText("보정 없음", left, hyy(40));
+  hx.fillStyle = "#35E0C2"; hx.fillText("deg^0.8 로 누른 뒤", right, hyy(40));
+
+  const drawCol = (list, x, color, withDeg) => {
+    list.slice(0, 4).forEach((o, i) => {
+      const y = top + i * rowH;
+      hx.fillStyle = "rgba(16,23,40,.85)";
+      hx.fillRect(x, y, colW, rowH - hyy(10));
+      hx.strokeStyle = "#263353"; hx.lineWidth = 1;
+      hx.strokeRect(x, y, colW, rowH - hyy(10));
+      hx.font = F(500, 11); hx.fillStyle = color;
+      hx.fillText(String(i + 1), x + hxx(9), y + hyy(21));
+      hx.font = F(600, 11.5, '"Gothic A1", sans-serif');
+      hx.fillStyle = "#E4E9F5";
+      hx.fillText(o.n.t, x + hxx(26), y + hyy(15));
+      hx.font = F(400, 9.5); hx.fillStyle = "#616F92";
+      hx.fillText(withDeg ? `score ${o.v.toExponential(1)} · 인용 ${HADJ[o.n.id].length}개`
+                          : `score ${o.v.toExponential(1)}`,
+                  x + hxx(26), y + hyy(30));
+    });
+  };
+  drawCol(RANK_RAW, left, "#E0894A", true);
+  hx.globalAlpha = reveal;
+  drawCol(RANK_FIX, right, "#35E0C2", false);
+  hx.globalAlpha = 1;
+
+  /* 순위가 어떻게 옮겨갔는지 잇는 선 */
+  hx.globalAlpha = reveal * .75; hx.lineWidth = 1.4;
+  RANK_RAW.slice(0, 4).forEach((o, i) => {
+    const j = RANK_FIX.findIndex(q => q.n.id === o.n.id);
+    if (j < 0 || j > 3) return;
+    hx.strokeStyle = j < i ? "#35E0C2" : j > i ? "#E0894A" : "#3A4667";
+    hx.beginPath();
+    hx.moveTo(left + colW, top + i * rowH + hyy(21));
+    hx.lineTo(right, top + j * rowH + hyy(21));
+    hx.stroke();
+  });
+  hx.globalAlpha = 1;
+
+  hx.font = F(400, 10.5); hx.textBaseline = "top";
+  hx.fillStyle = "#616F92";
+  hx.fillText("인용 관계가 많은 노드일수록 점수를 크게 나눈다", left, hyy(376));
+}
+
+/* ── 4단계: 경로가 이유가 된다 ────────────────────────── */
+function stepWhy(t){
+  const on = RM ? 1 : clamp01((t - 400) / 900);
+  hEdges(.22, on > .3 ? ["mixtral", "dsv3"] : null);
+  HN.forEach(n => {
+    const inPath = n.id === "mixtral" || n.id === "dsv3";
+    if (n.seed) hNode(n, {
+      fill: "#F0B429", alpha: inPath ? 1 : .35,
+      halo: inPath ? .4 : 0, haloColor: "rgba(240,180,41,.4)",
+      labelColor: inPath ? "#F0B429" : "#4A5573" });
+    else hNode(n, {
+      fill: inPath ? "#35E0C2" : "#39415E", alpha: inPath ? 1 : .35,
+      halo: inPath ? on * .8 : 0, haloColor: "rgba(53,224,194,.4)",
+      labelColor: inPath ? "#35E0C2" : "#4A5573" });
+  });
+
+  const bw = hxx(496), bh = hyy(64), bx = hxx(32), by = hyy(16);
+  hx.globalAlpha = on;
+  hx.fillStyle = "rgba(16,23,40,.96)"; hx.fillRect(bx, by, bw, bh);
+  hx.strokeStyle = "#35E0C2"; hx.lineWidth = 1.5; hx.strokeRect(bx, by, bw, bh);
+  hx.textAlign = "left"; hx.textBaseline = "top";
+  hx.font = F(400, 9); hx.fillStyle = "#616F92";
+  hx.fillText("왜 · 1홉", bx + hxx(13), by + hyy(11));
+  hx.font = F(600, 12, '"Gothic A1", sans-serif'); hx.fillStyle = "#F0B429";
+  hx.fillText("읽은 Mixtral of Experts", bx + hxx(13), by + hyy(27));
+  hx.font = F(400, 10.5, '"Gothic A1", sans-serif'); hx.fillStyle = "#98A5C4";
+  hx.fillText("↳ 이 논문을 인용한  DeepSeek-V3", bx + hxx(13), by + hyy(48));
+  hx.globalAlpha = 1;
+}
+
+const HOW_STEPS = [stepSeed, stepSpread, stepFix, stepWhy];
+
+function drawHow(now){
+  hx.fillStyle = "#0A0E1C"; hx.fillRect(0, 0, HW, HH);
+  const g = 40 * HK;
+  hx.strokeStyle = "#141C33"; hx.lineWidth = 1; hx.beginPath();
+  for (let x = 0; x < HW; x += g) { hx.moveTo(x, 0); hx.lineTo(x, HH); }
+  for (let y = 0; y < HH; y += g) { hx.moveTo(0, y); hx.lineTo(HW, y); }
+  hx.stroke();
+  HOW_STEPS[howStep](RM ? 9999 : now - howT0);
+  if (!RM) requestAnimationFrame(drawHow);
+}
+
+const howObs = new IntersectionObserver(entries => {
+  for (const e of entries) {
+    if (!e.isIntersecting) continue;
+    const i = +e.target.dataset.step;
+    if (i === howStep) continue;
+    howStep = i; howT0 = performance.now();
+    document.getElementById("howPhase").textContent = PHASE_NAME[i];
+    document.querySelectorAll("#howTrack .step").forEach(el =>
+      el.setAttribute("data-on", el.dataset.step === String(i) ? "1" : "0"));
+    if (RM) drawHow(performance.now());
+  }
+}, { rootMargin: "-45% 0px -45% 0px", threshold: 0 });
+document.querySelectorAll("#howTrack .step").forEach(el => howObs.observe(el));
+
+sizeHow();
+addEventListener("resize", () => { sizeHow(); if (RM) drawHow(performance.now()); });
+if (RM) drawHow(performance.now()); else requestAnimationFrame(drawHow);
+
+/* ── 벤토 미리보기: 실제 그래프 ─────────────────────────
+   assets/preview-data.js 는 safari.html 의 실제 그래프(노드 89 · 엣지 274)를
+   같은 포스 레이아웃으로 배치하고 실제 독서 이력으로 PPR 을 돌린 결과다.
+   난수로 그린 대용품이 아니다. 재생성은 node tools/build-preview.mjs.
+   ───────────────────────────────────────────────────────── */
+const PAPER_FILL = { 0:"#6E7789", 1:"#A97406", 2:"#B9B0A0", 3:"#2B5FE3", 4:"#6B4FD8", 5:"#B4485F" };
+const DARK_FILL  = { 0:"#5A6B93", 1:"#F0B429", 2:"#454E70", 3:"#35E0C2", 4:"#7C86F5", 5:"#E0788F" };
+
+function drawPreview(id, mode){
+  const c = document.getElementById(id);
+  if (!c || typeof CG_PREVIEW === "undefined") return;
+  const g = c.getContext("2d");
+  const r = c.getBoundingClientRect();
+  const d = Math.min(devicePixelRatio || 1, 2);
+  const W = Math.max(r.width, 160), H = Math.max(r.height, 90);
+  c.width = W * d; c.height = H * d; g.setTransform(d, 0, 0, d, 0, 0);
+
+  /* 정규화 좌표를 캔버스에 꽉 차게(cover) 매핑한다 */
+  const pad = 10;
+  const k = Math.max((W - pad * 2) / 1, (H - pad * 2) / CG_PREVIEW.aspect) * 1.02;
+  const ox = W / 2 - k / 2, oy = H / 2 - (k * CG_PREVIEW.aspect) / 2;
+  const X = v => ox + v * k, Y = v => oy + v * k * CG_PREVIEW.aspect;
+
+  const dark = mode === "dark";
+  g.fillStyle = dark ? "#0A0E1C" : "#EBE7DE";
+  g.fillRect(0, 0, W, H);
+
+  if (dark) {                                   /* 격자 */
+    g.strokeStyle = "#141C33"; g.lineWidth = 1; g.beginPath();
+    for (let x = 0; x < W; x += 26) { g.moveTo(x, 0); g.lineTo(x, H); }
+    for (let y = 0; y < H; y += 26) { g.moveTo(0, y); g.lineTo(W, y); }
+    g.stroke();
+  }
+
+  const P = CG_PREVIEW.player, LIGHT = dark ? Math.min(W, H) * 0.42 : 1e9;
+  const lit = n => {
+    if (!dark) return 1;
+    const dx = X(n[0]) - X(P[0]), dy = Y(n[1]) - Y(P[1]);
+    if (Math.hypot(dx, dy) < LIGHT) return 1;
+    return n[3] === 3 ? 0.8 : n[3] === 1 ? 0.3 : 0.12;
+  };
+
+  g.lineWidth = 1;                              /* 인용 엣지 */
+  for (const [a, b] of CG_PREVIEW.e) {
+    const na = CG_PREVIEW.n[a], nb = CG_PREVIEW.n[b];
+    const al = Math.min(lit(na), lit(nb)) * (dark ? 0.5 : 0.42);
+    if (al < 0.04) continue;
+    g.globalAlpha = al;
+    g.strokeStyle = dark ? "#263353" : "#5C564A";
+    g.beginPath(); g.moveTo(X(na[0]), Y(na[1])); g.lineTo(X(nb[0]), Y(nb[1])); g.stroke();
+  }
+  g.globalAlpha = 1;
+
+  for (const n of CG_PREVIEW.n) {               /* 노드. 크기는 PPR 점수다 */
+    const al = lit(n);
+    if (al < 0.05) continue;
+    const x = X(n[0]), y = Y(n[1]);
+    if (x < -20 || y < -20 || x > W + 20 || y > H + 20) continue;
+    const rad = 2.1 + Math.sqrt(n[2]) * 7;
+    if (n[3] === 3) {                           /* 추천은 후광을 두른다 */
+      const gr = g.createRadialGradient(x, y, rad * 0.6, x, y, rad * 3.6);
+      gr.addColorStop(0, dark ? "rgba(53,224,194,.34)" : "rgba(43,95,227,.26)");
+      gr.addColorStop(1, dark ? "rgba(53,224,194,0)" : "rgba(43,95,227,0)");
+      g.fillStyle = gr;
+      g.beginPath(); g.arc(x, y, rad * 3.6, 0, 6.2832); g.fill();
+    }
+    g.globalAlpha = al;
+    g.beginPath(); g.arc(x, y, rad, 0, 6.2832);
+    g.fillStyle = (dark ? DARK_FILL : PAPER_FILL)[n[3]];
+    g.fill();
+    g.globalAlpha = 1;
+  }
+
+  if (dark) {                                   /* 등불과 캐릭터 */
+    const px = X(P[0]), py = Y(P[1]);
+    const lg = g.createRadialGradient(px, py, 6, px, py, LIGHT);
+    lg.addColorStop(0, "rgba(255,233,168,.15)");
+    lg.addColorStop(1, "rgba(255,233,168,0)");
+    g.fillStyle = lg; g.beginPath(); g.arc(px, py, LIGHT, 0, 6.2832); g.fill();
+    if (window.CG_SPRITES) {
+      CG_SPRITES.drawWalker(g, px, py, { dir: "down", phase: 0.25, scale: 0.9,
+        palette: CG_SPRITES.CHARACTERS[0].palette });
+    }
+  }
+}
+
+function drawAllPreviews(){
+  drawPreview("bGraph", "paper");
+  drawPreview("bSafari", "dark");
+}
+addEventListener("load", drawAllPreviews);
+addEventListener("resize", drawAllPreviews);
+</script>
+</body>
+</html>

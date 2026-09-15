@@ -1,14 +1,15 @@
-<img src="assets/logo.svg" width="72" alt="Checkpoint Graph">
+<img src="assets/logo.svg" width="72" alt="Asterism">
 
-# Checkpoint Graph
+# Asterism
 
 > 내가 읽은 것을 넣으면, 그래프 위에서 다음에 읽을 것을 이유와 함께 돌려주는 연구자용 Second Brain.
 
-프로토타입 2종. **https://sangho24.github.io/checkpoint-graph/**
+화면 5종. **https://sangho24.github.io/asterism/**
 
 | | 무엇 | 링크 |
 |---|---|---|
-| 랜딩 | 제품 소개와 게임 자동 시연 | [index.html](index.html) |
+| 랜딩 | 한 줄 소개와 게임 자동 시연, 세 화면으로 가는 입구 | [index.html](index.html) |
+| 프로젝트 소개 | 추천 계산 네 단계·백테스트·한계를 모은 설명 페이지 | [about.html](about.html) |
 | 그래프 뷰 | 렌즈·랭킹 방법·반감기·베이스라인 겹침률을 보는 분석용 화면 | [graph.html](graph.html) |
 | 논문 사파리 | 인용 그래프를 걸어다니며 조우한 논문을 판정하는 게임형 화면 | [safari.html](safari.html) |
 | 온보딩 | 범위(주제·기간·깊이) → 관심 3개 → 아무거나 붙여넣기 → 가져오기 → 계속 쌓기. 입력을 요구하기 전에 값을 먼저 보여주는 입력 화면 | [onboard.html](onboard.html) |
@@ -16,8 +17,9 @@
 세 화면은 **프로필 하나**(브라우저 `localStorage` 의 `cg.profile`)를 같이 읽고 쓴다. 온보딩에서 정한 범위와 관심, 사파리의 조우 판정, 그래프 뷰의 반응 버튼이 전부 같은 곳에 쌓이고 페이지를 오가도 이어진다. 프로필이 없으면 mock 독서 이력 위에서 돌며 상단 배너가 온보딩으로 안내한다.
 
 ```
-checkpoint-graph/
+asterism/
 ├── index.html                    랜딩 (히어로에 게임 자동 시연)
+├── about.html                    프로젝트 소개 (계산 과정·백테스트·한계)
 ├── graph.html                    그래프 뷰
 ├── safari.html                   논문 사파리
 ├── onboard.html                  온보딩 (읽은 목록 입력 흐름)
@@ -29,7 +31,8 @@ checkpoint-graph/
 │   ├── gfx.js                    건수별 축척 규칙(노드 반경·엣지 투명도·라벨 예산)과 별자리 렌더 유틸
 │   ├── onboard-parse.js          붙여넣기·BibTeX·히스토리 JSON 파서
 │   ├── logo.svg · mark.svg       로고 (배경 투명)
-│   └── og.png                    링크 미리보기 이미지 1200x630 (자동 생성)
+│   ├── og.png                    링크 미리보기 이미지 1200x630 (자동 생성, tools/og.html)
+│   └── thumb.png                 홍보용 썸네일 1200x630 (자동 생성, tools/thumbnail.html)
 ├── data/hand-corpus.js           손으로 만든 코퍼스 원본 (논문 78 · 인용 266). 백테스트가 이것을 읽는다
 ├── data/reading-history.json     mock 독서 이력 (읽은 시각 포함)
 │   data/reading-history.js       같은 데이터의 인라인용 사본
@@ -277,8 +280,8 @@ Semantic Scholar 의 85.7% 도 같은 이력 위에서 잰 것이라 이 편향�
 `<script src>` 로 부르므로 `file://` 직접 열기 대신 로컬 서버로 띄우는 편이 확실하다.
 
 ```bash
-git clone https://github.com/sangho24/checkpoint-graph.git
-cd checkpoint-graph
+git clone https://github.com/sangho24/asterism.git
+cd asterism
 python3 -m http.server 8000
 # http://localhost:8000
 ```

@@ -35,7 +35,7 @@ for (const p of pending) {
   await sleep(INTERVAL_MS);
   let w = null, reason = null;
   try {
-    const res = await fetch(url, { headers: { "User-Agent": `checkpoint-graph-backtest (mailto:${MAILTO})` } });
+    const res = await fetch(url, { headers: { "User-Agent": `asterism-backtest (mailto:${MAILTO})` } });
     if (res.status === 429) { blocked++; reason = "HTTP 429 (일일 예산 소진)"; }
     else if (res.status === 404) { reason = "HTTP 404 (arXiv DOI 로 등록된 work 없음)"; }
     else if (!res.ok) { reason = `HTTP ${res.status}`; }
@@ -100,7 +100,7 @@ if (stillPending.length) {
     await sleep(500);
     let results = [], reason = null;
     try {
-      const res = await fetch(url, { headers: { "User-Agent": `checkpoint-graph-backtest (mailto:${MAILTO})` } });
+      const res = await fetch(url, { headers: { "User-Agent": `asterism-backtest (mailto:${MAILTO})` } });
       if (!res.ok) reason = `HTTP ${res.status}`;
       else results = (await res.json()).results || [];
     } catch (e) { reason = String(e.message || e); }
